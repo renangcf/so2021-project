@@ -1,5 +1,4 @@
-import java.lang.Exception;
-import java.nio.file.NoSuchFileException;
+import Exceptions.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -133,7 +132,7 @@ public class MemoryManager implements ManagementInterface {
         return new String[0];
     }
 
-    //TODO: 10. Fazer as Exceptions.
+    //TODO: 10. Fazer as Exceptions. (FEITO)
 
     //TODO: 11. Criar a "interface" do usuário bonitinha (lembrar de trata se o cara tá entrando só com 32 ou 64 ou 128 frames, entre outras verificações).
 }

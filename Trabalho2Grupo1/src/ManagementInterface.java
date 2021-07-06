@@ -1,3 +1,5 @@
+import Exceptions.*;
+
 /**
  * @author Clever Ricardo Guareis de Farias
  */
