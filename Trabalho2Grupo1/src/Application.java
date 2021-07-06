@@ -13,8 +13,8 @@ public class Application {
         while(true){
             System.out.println("Por favor, insira a quantidade de blocos do sistema simulado(Digitar apenas 32,64 ou 128).");
             frames = sc.nextInt();
-            switch(frames){
-                case 32,64,128:
+            switch(frames) {
+                case 32, 64, 128:
                     System.out.println("Criando manipulador de memória....");
                     break loop;
                 default:
@@ -22,10 +22,16 @@ public class Application {
                     System.out.println();
                     break;
             }
+
+            }
+        System.out.println("Digite o nome do arquivo: ");
+        String processName = sc.nextLine();
+        processName = sc.nextLine();
+        MemoryManager mm = new MemoryManager(frames);
+        try {
+            mm.loadProcessToMemory(processName);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-        MemoryManager memoryManager = new MemoryManager(frames);
-
-
     }
 }
