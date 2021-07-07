@@ -1,6 +1,9 @@
+import Exceptions.InvalidProcessException;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 public class PageTable {
     List<Page> listPages;
@@ -28,7 +31,7 @@ public class PageTable {
 
         Page page = (Page) iterator.next();
         lista = lista + page.toString();
-        while(iterator.hasNext()){
+        while (iterator.hasNext()) {
             page = (Page) iterator.next();
             lista = lista + "\n" + page.toString();
         }

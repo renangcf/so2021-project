@@ -30,7 +30,7 @@ public class Application {
                     break;
             }
 
-            }
+        }
         System.out.println("Digite o nome do arquivo: ");
         String processName = sc.nextLine();
         processName = sc.nextLine();
