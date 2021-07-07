@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
-
 public class MemoryManager implements ManagementInterface {
     int frames;
     List<PageTable> listPageTables;
@@ -100,6 +99,8 @@ public class MemoryManager implements ManagementInterface {
     public void resetMemory() {
         //TODO: 5.1. Acho que é só resetar listPageTables e frameMapping, fodase
 
+        listPageTables = new ArrayList<>();
+        frameMapping = new int[frames];
     }
 
     @Override
@@ -128,7 +129,9 @@ public class MemoryManager implements ManagementInterface {
         //TODO: 8.1. Retornar a pageTable baseada no processId. deboas.
         // Jogar InvalidProcessException caso não encontre esse processId.
 
-        return null;
+        PageTable pageTable = returnPageTable(processId);
+
+        return pageTable.toString();
     }
 
     @Override
@@ -136,6 +139,26 @@ public class MemoryManager implements ManagementInterface {
         //TODO: 9.1. Retornar o idProcess e processName de todo item em listPageTable.
 
         return new String[0];
+    }
+
+    public PageTable returnPageTable(int processId) throws InvalidProcessException{
+        Iterator iterator = listPageTables.listIterator();
+        boolean token = true;
+        PageTable returnPageTable = new PageTable(0,"a",1,1);
+        while(iterator.hasNext() || token){
+            try {
+                PageTable pagetable = (PageTable) iterator.next();
+                if(pagetable.getIdProcess() == processId){
+                    returnPageTable = pagetable;
+                    token = false;
+                }
+
+            }catch (NoSuchElementException nsee){
+                throw new InvalidProcessException("Incorrect process id : " + processId);
+            }
+        }
+
+        return returnPageTable;
     }
 
     //TODO: 10. Fazer as Exceptions. (FEITO)
