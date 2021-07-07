@@ -1,3 +1,10 @@
+import Exceptions.FileFormatException;
+import Exceptions.MemoryOverflowException;
+import Exceptions.NoSuchFileException;
+
+import javax.swing.*;
+import javax.swing.filechooser.FileSystemView;
+import java.io.File;
 import java.util.Scanner;
 
 public class Application {
