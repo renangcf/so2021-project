@@ -1,8 +1,6 @@
 import Exceptions.*;
-import java.awt.*;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.*;
 import java.util.List;
 public class MemoryManager implements ManagementInterface {
@@ -37,23 +35,17 @@ public class MemoryManager implements ManagementInterface {
 
     @Override
     public int loadProcessToMemory(String processName) throws NoSuchFileException, FileFormatException, MemoryOverflowException {
-        File process = (new File(processName + ".txt"));
-        Map prData;
-        prData = getProcessData(process);
-        if(!processName.equals(prData.get("program"))){
-            throw new FileFormatException("Nome do processo diferente do nome do arquivo");
-        }else {
-            System.out.println(prData);
-        }
-
-       /* } catch (FileNotFoundException e){
-            throw new NoSuchFileException("Arquivo não encontrado");
-            System.out.println(e);
-        }   */
 
         //TODO: 1.1. Ler o arquivo "processName.txt" e quebra-lo em partes: textSize,dataSize e talvez processName,não sei. Caso dê errado,
         // jogar "NoSuchFileException ou FileFormatException, dep
 
+        Map prData;
+        prData = getProcessData(processName);
+        if (!processName.equals(prData.get("program"))) {
+            throw new FileFormatException("Nome do processo diferente do nome do arquivo");
+        } else {
+            System.out.println(prData);
+        }
 
         //TODO: 1.2. Criar uma PageTable com os dados obtidos e adicioná-la em listPageTables (não esquecer de "alocar" textSize,dataSize E pilha!).
         // A busca pela alocação terá que ser feita por First-fit, e caso não caiba, procurar pelo maior buraco primeiro e ir alocando e direção ao menor buraco.
@@ -157,13 +149,14 @@ public class MemoryManager implements ManagementInterface {
         return new String[0];
     }
 
-    private Map getProcessData(File process) {
-        String line;
-        String[] words;
-        Map<String, String> prData = new HashMap<String, String>();
-        System.out.println(System.getProperty("user.dir"));
-        try {
+    private Map getProcessData(String processName) throws NoSuchFileException {
+        try{
+            File process = (new File(processName + ".txt"));
+            String line;
+            String[] words;
+            Map<String, String> prData = new HashMap<String, String>();
             Scanner scan = new Scanner(process);
+
             int i = 0;
             while (scan.hasNextLine()) {
                 line = scan.nextLine();
@@ -171,13 +164,14 @@ public class MemoryManager implements ManagementInterface {
                 prData.put(words[0], words[1]);
                 i++;
             }
+            return prData;
+
         }catch(FileNotFoundException e) {
-            e.printStackTrace();
+            throw new NoSuchFileException("Arquivo nao encontrado");
         }
-        return prData;
     }
 
-    public PageTable returnPageTable(int processId) throws InvalidProcessException{
+    private PageTable returnPageTable(int processId) throws InvalidProcessException{
         Iterator iterator = listPageTables.listIterator();
         boolean token = true;
         PageTable returnPageTable = new PageTable(0,"a",1,1);
@@ -190,7 +184,7 @@ public class MemoryManager implements ManagementInterface {
                 }
 
             }catch (NoSuchElementException nsee){
-                throw new InvalidProcessException("Incorrect process id : " + processId);
+                throw new InvalidProcessException("Id de processo incorreto : " + processId);
             }
         }
 
