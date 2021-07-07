@@ -37,7 +37,23 @@ public class MemoryManager implements ManagementInterface {
 
     @Override
     public int loadProcessToMemory(String processName) throws NoSuchFileException, FileFormatException, MemoryOverflowException {
-        //TODO: 1.1. Ler o arquivo "processName.txt" e quebra-lo em partes: textSize,dataSize e talvez processName,não sei. Caso dê errado, jogar "NoSuchFileException ou FileFormatException, dependendo.
+        File process = (new File(processName + ".txt"));
+        Map prData;
+        prData = getProcessData(process);
+        if(!processName.equals(prData.get("program"))){
+            throw new FileFormatException("Nome do processo diferente do nome do arquivo");
+        }else {
+            System.out.println(prData);
+        }
+
+       /* } catch (FileNotFoundException e){
+            throw new NoSuchFileException("Arquivo não encontrado");
+            System.out.println(e);
+        }   */
+
+        //TODO: 1.1. Ler o arquivo "processName.txt" e quebra-lo em partes: textSize,dataSize e talvez processName,não sei. Caso dê errado,
+        // jogar "NoSuchFileException ou FileFormatException, dep
+
 
         //TODO: 1.2. Criar uma PageTable com os dados obtidos e adicioná-la em listPageTables (não esquecer de "alocar" textSize,dataSize E pilha!).
         // A busca pela alocação terá que ser feita por First-fit, e caso não caiba, procurar pelo maior buraco primeiro e ir alocando e direção ao menor buraco.
@@ -139,6 +155,26 @@ public class MemoryManager implements ManagementInterface {
         //TODO: 9.1. Retornar o idProcess e processName de todo item em listPageTable.
 
         return new String[0];
+    }
+
+    private Map getProcessData(File process) {
+        String line;
+        String[] words;
+        Map<String, String> prData = new HashMap<String, String>();
+        System.out.println(System.getProperty("user.dir"));
+        try {
+            Scanner scan = new Scanner(process);
+            int i = 0;
+            while (scan.hasNextLine()) {
+                line = scan.nextLine();
+                words = line.split("\\s+");
+                prData.put(words[0], words[1]);
+                i++;
+            }
+        }catch(FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        return prData;
     }
 
     public PageTable returnPageTable(int processId) throws InvalidProcessException{
