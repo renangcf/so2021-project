@@ -7,11 +7,13 @@ public class MemoryManager implements ManagementInterface {
     int frames;
     List<PageTable> listPageTables;
     int[] frameMapping;
+    int processIdIterator;
 
 
     public MemoryManager(int frames){
         this.frames = frames;
         this.listPageTables = new ArrayList<>();
+        int processIdIterator = 1;
 
         if(frames == 32){
             this.frameMapping = new int[32];
@@ -34,22 +36,33 @@ public class MemoryManager implements ManagementInterface {
     }
 
     @Override
-    public int loadProcessToMemory(String processName) throws NoSuchFileException, FileFormatException, MemoryOverflowException {
+    public int loadProcessToMemory(String programName) throws NoSuchFileException, FileFormatException, MemoryOverflowException {
 
         //TODO: 1.1. Ler o arquivo "processName.txt" e quebra-lo em partes: textSize,dataSize e talvez processName,não sei. Caso dê errado,
         // jogar "NoSuchFileException ou FileFormatException, dep
 
         Map prData;
-        prData = getProcessData(processName);
-        if (!processName.equals(prData.get("program"))) {
-            throw new FileFormatException("Nome do processo diferente do nome do arquivo");
-        } else {
-            System.out.println(prData);
-        }
+        prData = getProcessData(programName);
+        //System.out.println(prData.get("data"));
 
         //TODO: 1.2. Criar uma PageTable com os dados obtidos e adicioná-la em listPageTables (não esquecer de "alocar" textSize,dataSize E pilha!).
         // A busca pela alocação terá que ser feita por First-fit, e caso não caiba, procurar pelo maior buraco primeiro e ir alocando e direção ao menor buraco.
         // Jogar MemoryOverflowException caso não tenha mais espaço!
+
+        String processName = (String)prData.get("program");
+        int textSize = Integer.parseInt((String) prData.get("text"));
+        int dataSize = Integer.parseInt((String)prData.get("data"));
+        int totalSize = textSize + dataSize + 64;
+
+        PageTable pageTable = new PageTable(processIdIterator,processName,textSize,dataSize);
+
+        // Já que os blocos reservados para texto,dados estáticos e pilha não podem se misturar, devemos aloca-lôs separadamente.
+        loadTextMemory(textSize,pageTable);
+        loadStaticData(dataSize,pageTable);
+        loadStack(64,pageTable);
+
+        //adicionando a pageTable na listPageTable
+        listPageTables.add(pageTable);
 
         //TODO: 1.3. Alterar no frameMapping os frames alterados!
 
@@ -58,7 +71,251 @@ public class MemoryManager implements ManagementInterface {
         return 0;
     }
 
+    private Map getProcessData(String processName) throws NoSuchFileException {
+        try{
+            File process = (new File(processName + ".txt"));
+            String line;
+            String[] words;
+            Map<String, String> prData = new HashMap<String, String>();
+            Scanner scan = new Scanner(process);
 
+            int i = 0;
+            while (scan.hasNextLine()) {
+                line = scan.nextLine();
+                words = line.split("\\s+");
+                prData.put(words[0], words[1]);
+                i++;
+            }
+            return prData;
+
+        }catch(FileNotFoundException e) {
+            throw new NoSuchFileException("Arquivo nao encontrado");
+        }
+    }
+
+    /**
+     *
+     * @param totalSize
+     * @param pageTable
+     *
+     * Aloca a parte de segmento de texto de um programa (alocação simples)
+     *
+     */
+    public void loadTextMemory(int totalSize,PageTable pageTable){
+        //TODO mini: falta ver se já existe um processo igual. Se existir, só ignora esse role todo kk
+
+        int lastBiggestHoleSize = 0;
+        int lastBiggestHoleStart = 0;
+
+        int holeStart = 0; //Quadro inicial do buraco sendo analisado
+        int holeSize = 0; //Tamanho em quantidade de quadros
+
+
+        for(int i = 0; i < frames; i++){
+
+
+            //quadro está livre, então soma-se 32 ao quadro.
+            if(frameMapping[i] == 0){
+                holeSize += 1;
+
+            }else{ //Quadro não está livre, checa se o buraco atual é o novo maior e continua a busca.
+
+                if(holeSize > lastBiggestHoleSize){
+                    lastBiggestHoleSize = holeSize;
+                    lastBiggestHoleStart = holeStart;
+
+                    holeSize = 0;
+                }
+
+                //Continuando a busca após o "buraco de alocados"
+                for(int j = i; j < frames; j++){
+                    if(frameMapping[j] == 0){
+                        holeStart = j;
+                        i = j;
+                        break;
+                    }
+                }
+            }
+
+            //Encontrei o primeiro buraco >= totalSize
+            if(holeSize * 32 >= totalSize){
+                for(int j = holeStart; j < holeSize+holeStart; j++){
+                    frameMapping[j] = 1;
+                    pageTable.addNewPage(j*32,false,32);
+                }
+                break;
+            }
+
+            //Chegou no final e não encontrou buraco == totalSize
+            if(i == frames - 1){
+                int lastHole = lastBiggestHoleStart + lastBiggestHoleSize;
+
+                //alocando os quadros do buraco....
+                for(int j = lastBiggestHoleStart; j < lastHole;j++){
+                    frameMapping[j] = 1;
+                    pageTable.addNewPage(j*32,false,32);
+                }
+
+                //Resetando o processo procurando o novo maior buraco...
+                i = 0;
+                lastBiggestHoleStart = 0;
+                lastBiggestHoleSize = 0;
+                totalSize -= lastBiggestHoleSize;
+            }
+
+        }
+    }
+
+    /**
+     *
+     * @param totalSize
+     * @param pageTable
+     *
+     * Aloca a parte de dados estáticos do programa (aloca notificando qual é a ultima página, a qual o resto poderá ser usada para o heap.)
+     */
+    public void loadStaticData(int totalSize,PageTable pageTable){
+        int lastBiggestHoleSize = 0;
+        int lastBiggestHoleStart = 0;
+
+        int holeStart = 0; //Quadro inicial do buraco sendo analisado
+        int holeSize = 0; //Tamanho em quantidade de quadros
+
+
+        for(int i = 0; i < frames; i++){
+
+
+            //quadro está livre, então soma-se 32 ao quadro.
+            if(frameMapping[i] == 0){
+                holeSize += 1;
+
+            }else{ //Quadro não está livre, checa se o buraco atual é o novo maior e continua a busca.
+
+                if(holeSize > lastBiggestHoleSize){
+                    lastBiggestHoleSize = holeSize;
+                    lastBiggestHoleStart = holeStart;
+
+                    holeSize = 0;
+                }
+
+                //Continuando a busca após o "buraco de alocados"
+                for(int j = i; j < frames; j++){
+                    if(frameMapping[j] == 0){
+                        holeStart = j;
+                        i = j;
+                        break;
+                    }
+                }
+            }
+
+            //Encontrei buraco >= totalSize
+            if(holeSize * 32 >= totalSize){
+                for(int j = holeStart; j < holeSize+holeStart; j++){
+                    frameMapping[j] = 1;
+
+                    //Checa se é a ultima página, que poderá oferecer espaço para heap.
+                    if(j == holeSize){
+                        int allocatedSpaceOnFrame = totalSize%32;
+                        pageTable.addNewPage(j*32,true,allocatedSpaceOnFrame);
+                    }else{
+                        pageTable.addNewPage(j*32,false,32);
+                    }
+                }
+                break;
+            }
+
+            //Chegou no final e não encontrou buraco == totalSize
+            if(i == frames - 1){
+                int lastHole = lastBiggestHoleStart + lastBiggestHoleSize;
+
+                //alocando os quadros do buraco....
+                for(int j = lastBiggestHoleStart; j < lastHole;j++){
+                    frameMapping[j] = 1;
+
+                    //Neste caso, a página nunca será a última.
+                    pageTable.addNewPage(j*32,false,32);
+                }
+
+                //Resetando o processo procurando o novo maior buraco...
+                i = 0;
+                lastBiggestHoleStart = 0;
+                lastBiggestHoleSize = 0;
+                totalSize -= lastBiggestHoleSize;
+            }
+
+        }
+    }
+
+    /**
+     *
+     * @param totalSize
+     * @param pageTable
+     *
+     * Aloca a parte de pilha do programa, as páginas correspondentes sempre serão no final da tabela de paginas.
+     */
+    public void loadStack(int totalSize,PageTable pageTable){
+        int lastBiggestHoleSize = 0;
+        int lastBiggestHoleStart = 0;
+
+        int holeStart = 0; //Quadro inicial do buraco sendo analisado
+        int holeSize = 0; //Tamanho em quantidade de quadros
+
+
+        for(int i = 0; i < frames; i++){
+
+
+            //quadro está livre, então soma-se 32 ao quadro.
+            if(frameMapping[i] == 0){
+                holeSize += 1;
+
+            }else{ //Quadro não está livre, checa se o buraco atual é o novo maior e continua a busca.
+
+                if(holeSize > lastBiggestHoleSize){
+                    lastBiggestHoleSize = holeSize;
+                    lastBiggestHoleStart = holeStart;
+
+                    holeSize = 0;
+                }
+
+                //Continuando a busca após o "buraco de alocados"
+                for(int j = i; j < frames; j++){
+                    if(frameMapping[j] == 0){
+                        holeStart = j;
+                        i = j;
+                        break;
+                    }
+                }
+            }
+
+            //Encontrei o primeiro buraco >= totalSize
+            if(holeSize * 32 >= totalSize){
+                for(int j = holeStart; j < holeSize+holeStart; j++){
+                    frameMapping[j] = 1;
+                    Page page = new Page(31-j,1,j*32,false,32);
+                    pageTable.listPages.add(page);
+                }
+                break;
+            }
+
+            //Chegou no final e não encontrou buraco == totalSize
+            if(i == frames - 1){
+                int lastHole = lastBiggestHoleStart + lastBiggestHoleSize;
+
+                //alocando os quadros do buraco....
+                for(int j = lastBiggestHoleStart; j < lastHole;j++){
+                    frameMapping[j] = 1;
+                    Page page = new Page(31-j,1,j*32,false,32);
+                    pageTable.listPages.add(31-j,page);
+                }
+
+                //Resetando o processo procurando o novo maior buraco...
+                i = 0;
+                lastBiggestHoleStart = 0;
+                lastBiggestHoleSize = 0;
+                totalSize -= lastBiggestHoleSize;
+            }
+
+        }
+    }
 
     @Override
     public int allocateMemoryToProcess(int processId, int size) throws InvalidProcessException, StackOverflowException, MemoryOverflowException {
@@ -127,9 +384,12 @@ public class MemoryManager implements ManagementInterface {
     @Override
     public String getBitMap() {
         //TODO: 7.1. É só arranjar um jeito bonitinho de retornar frameMapping.
-        // será que ele quer para qual processo cada quadro está alocado? tomara que não kk
+        String result = "";
+        for(int i = 0;i < frames;i++){
+           result = result + "[" + i + "]: " + frameMapping[i] + "\n";
+        }
 
-        return null;
+        return result;
     }
 
     @Override
@@ -140,35 +400,6 @@ public class MemoryManager implements ManagementInterface {
         PageTable pageTable = returnPageTable(processId);
 
         return pageTable.toString();
-    }
-
-    @Override
-    public String[] getProcessList() {
-        //TODO: 9.1. Retornar o idProcess e processName de todo item em listPageTable.
-
-        return new String[0];
-    }
-
-    private Map getProcessData(String processName) throws NoSuchFileException {
-        try{
-            File process = (new File(processName + ".txt"));
-            String line;
-            String[] words;
-            Map<String, String> prData = new HashMap<String, String>();
-            Scanner scan = new Scanner(process);
-
-            int i = 0;
-            while (scan.hasNextLine()) {
-                line = scan.nextLine();
-                words = line.split("\\s+");
-                prData.put(words[0], words[1]);
-                i++;
-            }
-            return prData;
-
-        }catch(FileNotFoundException e) {
-            throw new NoSuchFileException("Arquivo nao encontrado");
-        }
     }
 
     private PageTable returnPageTable(int processId) throws InvalidProcessException{
@@ -190,6 +421,17 @@ public class MemoryManager implements ManagementInterface {
 
         return returnPageTable;
     }
+
+    @Override
+    public String[] getProcessList() {
+        //TODO: 9.1. Retornar o idProcess e processName de todo item em listPageTable.
+
+        return new String[0];
+    }
+
+
+
+
 
     //TODO: 10. Fazer as Exceptions. (FEITO)
 

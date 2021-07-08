@@ -1,4 +1,5 @@
 import Exceptions.FileFormatException;
+import Exceptions.InvalidProcessException;
 import Exceptions.MemoryOverflowException;
 import Exceptions.NoSuchFileException;
 
@@ -9,7 +10,7 @@ import java.util.Scanner;
 
 public class Application {
 
-    public static void main(String args[]){
+    public static void main(String args[]) throws InvalidProcessException, MemoryOverflowException, FileFormatException, NoSuchFileException {
 
         Scanner sc = new Scanner(System.in);
         System.out.println("Bem vindo ao sistema");
@@ -35,10 +36,15 @@ public class Application {
         String processName = sc.nextLine();
         processName = sc.nextLine();
         MemoryManager mm = new MemoryManager(frames);
-        try {
+        mm.loadProcessToMemory(processName);
+
+        /*try {
             mm.loadProcessToMemory(processName);
         } catch (Exception e) {
             e.printStackTrace();
-        }
+        }*/
+
+        System.out.println(mm.getBitMap());
+        System.out.println(mm.getPageTable(0));
     }
 }

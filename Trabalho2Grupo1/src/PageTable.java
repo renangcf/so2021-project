@@ -6,7 +6,8 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 public class PageTable {
-    List<Page> listPages;
+    List<Page> listPages; //Max size == 32.
+    int currentLatestPage; //Ultima página registrada, desconsiderando as páginas que alocam a pilha
     int idProcess;
     String processName;
     int textSize;
@@ -15,6 +16,7 @@ public class PageTable {
 
     public PageTable(int idProcess,String processName,int textSize,int dataSize){
         listPages = new ArrayList<>();
+        this.currentLatestPage = 0;
         this.idProcess = idProcess;
         this.processName = processName;
         this.textSize = textSize;
@@ -37,5 +39,12 @@ public class PageTable {
         }
 
         return lista;
+    }
+
+    public void addNewPage(int firstBitOfFrame,boolean isLastPageOfStaticData,int allocatedSpaceOnFrame){
+        Page page = new Page(currentLatestPage,1,firstBitOfFrame,isLastPageOfStaticData,allocatedSpaceOnFrame);
+        currentLatestPage++;
+
+        listPages.add(page);
     }
 }
