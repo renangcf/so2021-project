@@ -49,29 +49,64 @@ public class MemoryManager implements ManagementInterface {
         // A busca pela alocação terá que ser feita por First-fit, e caso não caiba, procurar pelo maior buraco primeiro e ir alocando e direção ao menor buraco.
         // Jogar MemoryOverflowException caso não tenha mais espaço!
 
-        String processName = (String)prData.get("program");
-        int textSize = Integer.parseInt((String) prData.get("text"));
-        int dataSize = Integer.parseInt((String)prData.get("data"));
-        int totalSize = textSize + dataSize + 64;
+        try {
+            String processName = (String) prData.get("program");
 
-        PageTable pageTable = new PageTable(processIdIterator,processName,textSize,dataSize);
+            if (!programName.equals(processName))
+                throw new FileFormatException("Nome do programa diferente do nome do arquivo");
 
-        // Já que os blocos reservados para texto,dados estáticos e pilha não podem se misturar, devemos aloca-lôs separadamente.
-        loadTextMemory(textSize,pageTable);
-        loadStaticData(dataSize,pageTable);
-        loadStack(64,pageTable);
+            int textSize = Integer.parseInt((String) prData.get("text"));
+            if(textSize < 1 || textSize > 960) throw new MemoryOverflowException("Segmento de texto de tamanho inválido\nSegmento deve possuir entre 1 e 960 bytes");
+            int dataSize = Integer.parseInt((String) prData.get("data"));
+            if(dataSize < 1 || dataSize > 928) throw new MemoryOverflowException("Segmento de dados de tamanho inválido\nSegmento deve possuir entre 0 e 928 bytes");
+            int totalSize = textSize + dataSize + 64; //64 é o tamanho da pilha
+            if(totalSize > 1024) throw new MemoryOverflowException("Tamanho máximo ultrapassado\nSegmento deve ter ao máximo 1024 bytes");
 
-        //adicionando a pageTable na listPageTable
-        listPageTables.add(pageTable);
+            int freeSpace = 0;
+            for(int i = 0;i>frames;i++){
+                if(frameMapping[i]==0){freeSpace += 32;} //Como nunca usaremos o espaço extra no bloco de outras funções, contamos somente as paginas totalemente livres.
+            }
 
-        //TODO: 1.3. Alterar no frameMapping os frames alterados!
+            boolean checkSameProcess =false;
+            Iterator iterator = listPageTables.listIterator();
+            while(iterator.hasNext()){
+                PageTable pt = (PageTable) iterator.next();
+                String pN = pt.getProcessName();
+                if(pN.equals(processName)){
+                    checkSameProcess = true;
+                }
+            }
 
-        //TODO: 1.4. Retornar o idProcess gerado (implica em criar getProcessId em pageTable).
+            int ts;
+            if(checkSameProcess){ts=totalSize-textSize;}
+            else{ts=totalSize;}
 
-        return 0;
+            if(ts < freeSpace) throw new MemoryOverflowException("Memória disponível excedida.");
+
+
+            PageTable pageTable = new PageTable(processIdIterator, processName, textSize, dataSize);
+            int processId = processIdIterator;
+            processIdIterator++;
+
+            // Já que os blocos reservados para texto,dados estáticos e pilha não podem se misturar, devemos aloca-lôs separadamente.
+            loadTextMemory(textSize, pageTable);
+            loadStaticData(dataSize, pageTable);
+            loadStack(64, pageTable);
+
+            //adicionando a pageTable na listPageTable
+            listPageTables.add(pageTable);
+
+            //TODO: 1.3. Alterar no frameMapping os frames alterados! (FEITO)
+
+            //TODO: 1.4. Retornar o idProcess gerado (implica em criar getProcessId em pageTable). (FEITO)
+
+            return processId;
+        } catch(NumberFormatException ne){
+            throw new FileFormatException("Tipo do argumento inválido. Deveria ser Int");
+        }
     }
 
-    private Map getProcessData(String processName) throws NoSuchFileException {
+    private Map getProcessData(String processName) throws NoSuchFileException,FileFormatException {
         try{
             File process = (new File(processName + ".txt"));
             String line;
@@ -79,17 +114,28 @@ public class MemoryManager implements ManagementInterface {
             Map<String, String> prData = new HashMap<String, String>();
             Scanner scan = new Scanner(process);
 
+            if(process.length() == 0) throw new FileFormatException("Arquivo Vazio");
+
             int i = 0;
-            while (scan.hasNextLine()) {
+            while(scan.hasNextLine()) {
                 line = scan.nextLine();
                 words = line.split("\\s+");
                 prData.put(words[0], words[1]);
                 i++;
+
+                if(i == 1 && !words[0].equals("program")) throw new FileFormatException(words[0] + ": Nome do 1º argumento inválido. Deveria ser 'program'");
+                if(i == 2 && !words[0].equals("text")) throw new FileFormatException(words[0] + ": Nome do 2º argumento inválido. Deveria ser 'text'");
+                if(i == 3 && !words[0].equals("data")) throw new FileFormatException(words[0] + ": Nome do 3º argumento inválido. Deveria ser 'data'");
+
             }
+            if(i != 3) throw new FileFormatException("Número inválido de argumentos");
+
             return prData;
 
         }catch(FileNotFoundException e) {
             throw new NoSuchFileException("Arquivo nao encontrado");
+        }catch(ArrayIndexOutOfBoundsException e){
+            throw new FileFormatException("Formatação do arquivo incorreta");
         }
     }
 
@@ -101,8 +147,25 @@ public class MemoryManager implements ManagementInterface {
      * Aloca a parte de segmento de texto de um programa (alocação simples)
      *
      */
-    public void loadTextMemory(int totalSize,PageTable pageTable){
-        //TODO mini: falta ver se já existe um processo igual. Se existir, só ignora esse role todo kk
+    private void loadTextMemory(int totalSize,PageTable pageTable){
+        //TODO mini: falta ver se já existe um processo igual. Se existir, só ignora esse role todo kk (FEITO)
+
+        Iterator iterator = listPageTables.listIterator();
+        while(iterator.hasNext()){
+            PageTable pt = (PageTable) iterator.next();
+            String processName = pt.getProcessName();
+            if(processName.equals(pageTable.getProcessName())){
+                //Pegar páginas de texto
+                int framesTextPt= (int)Math.ceil(pt.getTextSize()/32);
+
+                for(int i = 0;i<=framesTextPt;i++){
+                    pageTable.addNewPage(pt.listPages.get(i).getFirstBitOfFrame(),false,32);
+                }
+
+                return;
+            }
+
+        }
 
         int lastBiggestHoleSize = 0;
         int lastBiggestHoleStart = 0;
@@ -112,8 +175,6 @@ public class MemoryManager implements ManagementInterface {
 
 
         for(int i = 0; i < frames; i++){
-
-
             //quadro está livre, então soma-se 32 ao quadro.
             if(frameMapping[i] == 0){
                 holeSize += 1;
@@ -173,7 +234,7 @@ public class MemoryManager implements ManagementInterface {
      *
      * Aloca a parte de dados estáticos do programa (aloca notificando qual é a ultima página, a qual o resto poderá ser usada para o heap.)
      */
-    public void loadStaticData(int totalSize,PageTable pageTable){
+    private void loadStaticData(int totalSize,PageTable pageTable){
         int lastBiggestHoleSize = 0;
         int lastBiggestHoleStart = 0;
 
@@ -213,7 +274,7 @@ public class MemoryManager implements ManagementInterface {
                     frameMapping[j] = 1;
 
                     //Checa se é a ultima página, que poderá oferecer espaço para heap.
-                    if(j == holeSize){
+                    if(j == (holeSize + holeStart - 1)){
                         int allocatedSpaceOnFrame = totalSize%32;
                         pageTable.addNewPage(j*32,true,allocatedSpaceOnFrame);
                     }else{
@@ -252,7 +313,7 @@ public class MemoryManager implements ManagementInterface {
      *
      * Aloca a parte de pilha do programa, as páginas correspondentes sempre serão no final da tabela de paginas.
      */
-    public void loadStack(int totalSize,PageTable pageTable){
+    private void loadStack(int totalSize,PageTable pageTable){
         int lastBiggestHoleSize = 0;
         int lastBiggestHoleStart = 0;
 

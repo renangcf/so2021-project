@@ -37,8 +37,9 @@ public class Application {
         processName = sc.nextLine();
         MemoryManager mm = new MemoryManager(frames);
         mm.loadProcessToMemory(processName);
+        mm.loadProcessToMemory(processName);
 
-        /*try {
+       /*try {
             mm.loadProcessToMemory(processName);
         } catch (Exception e) {
             e.printStackTrace();
