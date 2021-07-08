@@ -39,7 +39,7 @@ public class MemoryManager implements ManagementInterface {
     public int loadProcessToMemory(String programName) throws NoSuchFileException, FileFormatException, MemoryOverflowException {
 
         //TODO: 1.1. Ler o arquivo "processName.txt" e quebra-lo em partes: textSize,dataSize e talvez processName,não sei. Caso dê errado,
-        // jogar "NoSuchFileException ou FileFormatException, dep
+        // jogar "NoSuchFileException ou FileFormatException, (FEITO)
 
         Map prData;
         prData = getProcessData(programName);
@@ -47,7 +47,7 @@ public class MemoryManager implements ManagementInterface {
 
         //TODO: 1.2. Criar uma PageTable com os dados obtidos e adicioná-la em listPageTables (não esquecer de "alocar" textSize,dataSize E pilha!).
         // A busca pela alocação terá que ser feita por First-fit, e caso não caiba, procurar pelo maior buraco primeiro e ir alocando e direção ao menor buraco.
-        // Jogar MemoryOverflowException caso não tenha mais espaço!
+        // Jogar MemoryOverflowException caso não tenha mais espaço! (FEITO)
 
         try {
             String processName = (String) prData.get("program");
