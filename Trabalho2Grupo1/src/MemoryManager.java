@@ -351,7 +351,7 @@ public class MemoryManager implements ManagementInterface {
             if(holeSize * 32 >= totalSize){
                 for(int j = holeStart; j < holeSize+holeStart; j++){
                     frameMapping[j] = 1;
-                    Page page = new Page(31-j,1,j*32,false,32);
+                    Page page = new Page(30+j-holeStart,1,j*32,false,32);
                     pageTable.listPages.add(page);
                 }
                 break;
@@ -364,8 +364,8 @@ public class MemoryManager implements ManagementInterface {
                 //alocando os quadros do buraco....
                 for(int j = lastBiggestHoleStart; j < lastHole;j++){
                     frameMapping[j] = 1;
-                    Page page = new Page(31-j,1,j*32,false,32);
-                    pageTable.listPages.add(31-j,page);
+                    Page page = new Page(30+j-lastBiggestHoleStart,1,j*32,false,32);
+                    pageTable.listPages.add(page);
                 }
 
                 //Resetando o processo procurando o novo maior buraco...
@@ -447,7 +447,7 @@ public class MemoryManager implements ManagementInterface {
         //TODO: 7.1. É só arranjar um jeito bonitinho de retornar frameMapping.
         String result = "";
         for(int i = 0;i < frames;i++){
-           result = result + "[" + i + "]: " + frameMapping[i] + "\n";
+            result = result + "[" + i + "]: " + frameMapping[i] + "\n";
         }
 
         return result;

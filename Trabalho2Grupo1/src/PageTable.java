@@ -26,6 +26,8 @@ public class PageTable {
     public int getIdProcess(){
         return idProcess;
     }
+    public String getProcessName(){return processName;}
+    public int getTextSize(){return textSize;}
 
     public String toString(){
         String lista = "";
@@ -46,5 +48,21 @@ public class PageTable {
         currentLatestPage++;
 
         listPages.add(page);
+    }
+
+    public int getFirstBitOfFrameOfPage(int pageId){
+        int result = -1;
+
+        Iterator iterator = listPages.listIterator();
+        while(iterator.hasNext()){
+            Page page = (Page) iterator.next();
+
+            if(pageId == page.getIdPage()){
+                result = page.getFirstBitOfFrame();
+            }
+
+        }
+
+        return result;
     }
 }

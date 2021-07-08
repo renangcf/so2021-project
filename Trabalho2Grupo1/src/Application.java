@@ -47,5 +47,6 @@ public class Application {
 
         System.out.println(mm.getBitMap());
         System.out.println(mm.getPageTable(0));
+        System.out.println(mm.getPageTable(1));
     }
 }
