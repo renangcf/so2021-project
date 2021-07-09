@@ -63,8 +63,8 @@ public class MemoryManager implements ManagementInterface {
             if(totalSize > 1024) throw new MemoryOverflowException("Tamanho máximo ultrapassado\nSegmento deve ter ao máximo 1024 bytes");
 
             int freeSpace = 0;
-            for(int i = 0;i>frames;i++){
-                if(frameMapping[i]==0){freeSpace += 32;} //Como nunca usaremos o espaço extra no bloco de outras funções, contamos somente as paginas totalemente livres.
+            for(int i = 0;i<frames;i++){
+                if(frameMapping[i]==0){freeSpace += 32;} //Como nunca usaremos o espaço extra no bloco de outras funções, contamos somente as paginas totalmente livres.
             }
 
             boolean checkSameProcess =false;
