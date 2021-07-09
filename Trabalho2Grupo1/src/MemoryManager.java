@@ -169,14 +169,11 @@ public class MemoryManager implements ManagementInterface {
             if(processName.equals(pageTable.getProcessName())){
                 //Pegar páginas de texto
                 int framesTextPt = (int)Math.ceil((float)pt.getTextSize()/32);
-
                 for(int i = 0;i<framesTextPt;i++){
                     pageTable.addNewPage(pt.listPages.get(i).getFirstBitOfFrame(),false,false,32);
                 }
-
                 return;
             }
-
         }
 
         int lastBiggestHoleSize = 0;
@@ -185,21 +182,15 @@ public class MemoryManager implements ManagementInterface {
         int holeStart = 0; //Quadro inicial do buraco sendo analisado
         int holeSize = 0; //Tamanho em quantidade de quadros
 
-
         for(int i = 0; i < frames; i++){
             //quadro está livre, então soma-se 32 ao quadro.
             if(frameMapping[i] == 0){
                 holeSize += 1;
-
             }else{ //Quadro não está livre, checa se o buraco atual é o novo maior e continua a busca.
-
                 if(holeSize > lastBiggestHoleSize){
                     lastBiggestHoleSize = holeSize;
                     lastBiggestHoleStart = holeStart;
-
-
                 }
-
                 holeSize = 0;
 
                 //Continuando a busca após o "buraco de alocados"
@@ -453,7 +444,7 @@ public class MemoryManager implements ManagementInterface {
         int holeStart = 0; //Quadro inicial do buraco sendo analisado
         int holeSize = 0; //Tamanho em quantidade de quadros
 
-        if(pageTable.getLastPageOfStaticData().getAllocatedSpaceOnFrame() - 32 == 0 && pageTable.getDataSize()%32+pageTable.getHeapSize() > 32 ){
+        if(pageTable.getLastPageOfStaticData().getAllocatedSpaceOnFrame() - 32 == 0 && pageTable.getDataSize()%32 + pageTable.getHeapSize() > 32){
             Page page = pageTable.getLastPageOfHeap();
             int freeSpaceOnPage = 32 - page.getAllocatedSpaceOnFrame();
 
@@ -512,7 +503,7 @@ public class MemoryManager implements ManagementInterface {
                     //Checa se é a ultima página, que poderá oferecer espaço para heap.
                     if(j == (holeSize + holeStart - 1)){
                         int allocatedSpaceOnFrame = heapSize%32;
-                        pageTable.addNewPage(j*32,false,true,allocatedSpaceOnFrame);
+                        pageTable.addNewPage(j*32,false,true, allocatedSpaceOnFrame);
                         pageTable.setHeapSize(pageTable.getHeapSize()+holeSize*32);
                     }else{
                         pageTable.addNewPage(j*32,false,false,32);
@@ -574,8 +565,6 @@ public class MemoryManager implements ManagementInterface {
      * libera a parte de heap do programa (aloca notificando qual é a ultima página, a qual o resto poderá ser usada para o heap.)
      */
     private void freeHeap(int freeHeap, PageTable pageTable){
-
-
         // Caso hajam páginas que abriguem somente heap
         while(freeHeap != 0){
             //  Caso NÃO hajam páginas que abriguem somente heap
@@ -616,6 +605,11 @@ public class MemoryManager implements ManagementInterface {
         //TODO: 4.1. Procurar por pageTable com processId.
         // Jogar InvalidProcessException caso não encontre esse processId.
 
+        PageTable pageTable = returnPageTable(processId);
+
+        Iterator iterator = listPageTables.listIterator();
+
+
         //TODO: 4.2. Excluir esse cara,basicamente
         // Cuidado, não sei se vai ter que fazer + alguma verificação no caso de ter 2 processos "iguais" por causa que eles compartilham algumas partes.
 
@@ -626,7 +620,6 @@ public class MemoryManager implements ManagementInterface {
     @Override
     public void resetMemory() {
         //TODO: 5.1. Acho que é só resetar listPageTables e frameMapping, fodase
-
         listPageTables = new ArrayList<>();
         frameMapping = new int[frames];
     }
@@ -688,11 +681,11 @@ public class MemoryManager implements ManagementInterface {
         int i = 0;
 
         Iterator iterator = listPageTables.listIterator();
-        while(iterator.hasNext()){
+        do{
             PageTable pageTable = (PageTable) iterator.next();
             lista[i] = "ID: " + pageTable.getIdProcess() + " - " + pageTable.getProcessName();
             i++;
-        }
+        } while(iterator.hasNext());
 
         return lista;
     }

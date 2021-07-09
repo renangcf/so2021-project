@@ -44,7 +44,7 @@ public class PageTable {
         while (iterator.hasNext()) {
             page = (Page) iterator.next();
             lista = lista + "\n" + page.toString();
-        }
+        } while (iterator.hasNext());
 
         return lista;
     }
@@ -81,7 +81,7 @@ public class PageTable {
                 result = page;
                 break;
             }
-        }while (iterator.hasNext());
+        } while (iterator.hasNext());
         return result;
     }
 
@@ -93,7 +93,7 @@ public class PageTable {
             if(page.getIsLastPageOfHeap()){
                 result = page;
             }
-        }while (iterator.hasNext());
+        } while (iterator.hasNext());
         return result;
     }
 
@@ -120,7 +120,7 @@ public class PageTable {
                 result = page;
                 break;
             }
-        }while(iterator.hasNext());
+        } while(iterator.hasNext());
         return  result;
     }
 

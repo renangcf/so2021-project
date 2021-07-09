@@ -32,46 +32,63 @@ public class Application {
 
             switch(uInput) {
                 case "1":
-                    System.out.println("Digite o nome do arquivo: ");
-                    String processName = sc.nextLine();
-                    int processId = mm.loadProcessToMemory(processName);
-                    //System.out.println(mm.getBitMap());
-                    //System.out.println(mm.getPageTable(processId));
-                    System.out.println();
-                    System.out.println("ID do novo processo: " + processId);
-                    break;
+                    try {
+                        System.out.println("Digite o nome do arquivo: ");
+                        String processName = sc.nextLine();
+                        int processId = mm.loadProcessToMemory(processName);
+                        //System.out.println(mm.getBitMap());
+                        //System.out.println(mm.getPageTable(processId));
+                        System.out.println();
+                        System.out.println("ID do novo processo: " + processId);
+                        break;
+                    } catch(Exception e){
+                        System.out.println(e);
+                        break;
+                    }
 
                 case "2":
-                    System.out.println("Digite o id do processo: ");
-                    id = Integer.parseInt(sc.nextLine());
-                    System.out.println("Digite o tamanho do heap: ");
-                    size = Integer.parseInt(sc.nextLine());
-                    while (size < 0){
-                        System.out.println("Tamanho Inválido. \n Deve ser maior ou igual a 0. \n Digite novamente o tamanho do heap:");
+                    try{
+                        System.out.println("Digite o id do processo: ");
+                        id = Integer.parseInt(sc.nextLine());
+                        System.out.println("Digite o tamanho do heap: ");
                         size = Integer.parseInt(sc.nextLine());
+                        while (size < 0){
+                            System.out.println("Tamanho Inválido. \n Deve ser maior ou igual a 0. \n Digite novamente o tamanho do heap:");
+                            size = Integer.parseInt(sc.nextLine());
+                            break;
+                        }
+
+                        heapSize = mm.allocateMemoryToProcess(id, size);
+                        System.out.println("Heap Size alocado: " + heapSize);
+                        System.out.println(mm.getBitMap());
+                        System.out.println(mm.getPageTable(id));
+                        break;
+                    } catch (Exception e){
+                        System.out.println(e);
                         break;
                     }
 
-                    heapSize = mm.allocateMemoryToProcess(id, size);
-                    System.out.println("Heap Size alocado: " + heapSize);
-                    System.out.println(mm.getBitMap());
-                    System.out.println(mm.getPageTable(id));
-                    break;
 
                 case "3":
-                    System.out.println("Digite o id do processo: ");
-                    id = Integer.parseInt(sc.nextLine());
-                    System.out.println("Digite o tamanho do heap: ");
-                    size = Integer.parseInt(sc.nextLine());
-                    while (size < 0){
-                        System.out.println("Tamanho Inválido. \n Deve ser maior ou igual a 0. \n Digite novamente o tamanho do heap:");
+                    try{
+                        System.out.println("Digite o id do processo: ");
+                        id = Integer.parseInt(sc.nextLine());
+                        System.out.println("Digite o tamanho do heap: ");
                         size = Integer.parseInt(sc.nextLine());
+                        while (size < 0){
+                            System.out.println("Tamanho Inválido. \n Deve ser maior ou igual a 0. \n Digite novamente o tamanho do heap:");
+                            size = Integer.parseInt(sc.nextLine());
+                            break;
+                        }
+                        heapSize = mm.freeMemoryFromProcess(id, size);
+                        System.out.println("Heap Size desalocado: " + heapSize);
+                        System.out.println(mm.getBitMap());
+                        System.out.println(mm.getPageTable(id));
+                    } catch(Exception e){
+                        System.out.println(e);
                         break;
                     }
-                    heapSize = mm.freeMemoryFromProcess(id, size);
-                    System.out.println("Heap Size desalocado: " + heapSize);
-                    System.out.println(mm.getBitMap());
-                    System.out.println(mm.getPageTable(id));
+
                     break;
 
                 case "4":
@@ -80,10 +97,16 @@ public class Application {
                     frames = chooseBlockSize();
                     mm = new MemoryManager(frames);
                     break;
+
                 case "6":
-                    System.out.println("Lista de processos:");
-                    mm.printProcessList(mm.getProcessList());
-                    break;
+                    try {
+                        System.out.println("Lista de processos:");
+                        mm.printProcessList(mm.getProcessList());
+                        break;
+                    } catch(Exception e){
+                        System.out.println(e);
+                        break;
+                    }
                 default:
                     System.out.println("Saindo...");
                     break loop;
