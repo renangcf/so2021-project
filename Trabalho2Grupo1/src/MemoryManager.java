@@ -630,9 +630,18 @@ public class MemoryManager implements ManagementInterface {
 
     @Override
     public String[] getProcessList() {
-        //TODO: 9.1. Retornar o idProcess e processName de todo item em listPageTable.
+        //TODO: 9.1. Retornar o idProcess e processName de todo item em listPageTable
+        String[] lista = new String[listPageTables.size()];
+        int i = 0;
 
-        return new String[0];
+        Iterator iterator = listPageTables.listIterator();
+        while(iterator.hasNext()){
+            PageTable pageTable = (PageTable) iterator.next();
+            lista[i] = "ID: " + pageTable.getIdProcess() + " - " + pageTable.getProcessName();
+            i++;
+        }
+
+        return lista;
     }
 
     public void printProcessList(String[] processList){
