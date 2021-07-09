@@ -75,13 +75,13 @@ public class PageTable {
     public Page getLastPageOfStaticData(){
         Page result = new Page(-1,-1,-1,false,false,32);
         Iterator iterator = listPages.listIterator();
-        while (iterator.hasNext()){
+        do{
             Page page = (Page) iterator.next();
             if(page.getIsLastPageOfStaticData()){
                 result = page;
                 break;
             }
-        }
+        }while (iterator.hasNext());
         return result;
     }
 
