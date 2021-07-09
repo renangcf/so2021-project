@@ -35,6 +35,8 @@ public class MemoryManager implements ManagementInterface {
         }
     }
 
+
+
     @Override
     public int loadProcessToMemory(String programName) throws NoSuchFileException, FileFormatException, MemoryOverflowException {
 
