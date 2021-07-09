@@ -26,6 +26,9 @@ public class Application {
             System.out.println("X - Sair do programa\n");
 
             String uInput = sc.nextLine();
+            int id = 0;
+            int size = 0;
+            int heapSize = 0;
 
             switch(uInput) {
                 case "1":
@@ -40,9 +43,9 @@ public class Application {
 
                 case "2":
                     System.out.println("Digite o id do processo: ");
-                    int id = Integer.parseInt(sc.nextLine());
+                    id = Integer.parseInt(sc.nextLine());
                     System.out.println("Digite o tamanho do heap: ");
-                    int size = Integer.parseInt(sc.nextLine());
+                    size = Integer.parseInt(sc.nextLine());
                     while (size < 0){
                         System.out.println("Tamanho Inválido. \n Deve ser maior ou igual a 0. \n Digite novamente o tamanho do heap:");
                         size = Integer.parseInt(sc.nextLine());
@@ -56,7 +59,23 @@ public class Application {
                     break;
 
                 case "3":
+                    System.out.println("Digite o id do processo: ");
+                    id = Integer.parseInt(sc.nextLine());
+                    System.out.println("Digite o tamanho do heap: ");
+                    size = Integer.parseInt(sc.nextLine());
+                    while (size < 0){
+                        System.out.println("Tamanho Inválido. \n Deve ser maior ou igual a 0. \n Digite novamente o tamanho do heap:");
+                        size = Integer.parseInt(sc.nextLine());
+                        break;
+                    }
+                    heapSize = mm.freeMemoryFromProcess(id, size);
+                    System.out.println("Heap Size desalocado: " + heapSize);
+                    System.out.println(mm.getBitMap());
+                    System.out.println(mm.getPageTable(id));
+                    break;
+
                 case "4":
+                    break;
                 case "5":
                     frames = chooseBlockSize();
                     mm = new MemoryManager(frames);
