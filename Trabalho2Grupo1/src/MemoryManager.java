@@ -67,7 +67,7 @@ public class MemoryManager implements ManagementInterface {
                 if(frameMapping[i]==0){freeSpace += 32;} //Como nunca usaremos o espaço extra no bloco de outras funções, contamos somente as paginas totalmente livres.
             }
 
-            boolean checkSameProcess =false;
+            boolean checkSameProcess = false;
             Iterator iterator = listPageTables.listIterator();
             while(iterator.hasNext()){
                 PageTable pt = (PageTable) iterator.next();
@@ -76,12 +76,13 @@ public class MemoryManager implements ManagementInterface {
                     checkSameProcess = true;
                 }
             }
-
+            int allocatedTextSize = (int)Math.ceil((float)textSize/32) * 32;
+            int allocatedDataSize = (int)Math.ceil((float)dataSize/32) * 32;
             int ts;
-            if(checkSameProcess){ts=totalSize-textSize;}
-            else{ts=totalSize;}
+            if(checkSameProcess){ts = 64 + allocatedDataSize;}
+            else{ts = allocatedTextSize + 64 + allocatedDataSize;}
 
-            if(ts < freeSpace) throw new MemoryOverflowException("Memória disponível excedida.");
+            if(ts > freeSpace) throw new MemoryOverflowException("Memória disponível excedida.");
 
 
             PageTable pageTable = new PageTable(processIdIterator, processName, textSize, dataSize);
@@ -156,7 +157,7 @@ public class MemoryManager implements ManagementInterface {
             String processName = pt.getProcessName();
             if(processName.equals(pageTable.getProcessName())){
                 //Pegar páginas de texto
-                int framesTextPt= (int)Math.ceil(pt.getTextSize()/32);
+                int framesTextPt = (int)Math.ceil((float)pt.getTextSize()/32);
 
                 for(int i = 0;i<=framesTextPt;i++){
                     pageTable.addNewPage(pt.listPages.get(i).getFirstBitOfFrame(),false,32);

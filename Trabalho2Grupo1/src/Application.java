@@ -15,38 +15,68 @@ public class Application {
         Scanner sc = new Scanner(System.in);
         System.out.println("Bem vindo ao sistema");
         System.out.println();
-
-        int frames = 0;
-        loop:
-        while(true){
-            System.out.println("Por favor, insira a quantidade de blocos do sistema simulado(Digitar apenas 32,64 ou 128).");
-            frames = sc.nextInt();
-            switch(frames) {
-                case 32, 64, 128:
-                    System.out.println("Criando manipulador de memória....");
-                    break loop;
-                default:
-                    System.out.println("Número invalido. Números válidos: 32, 64, 128.");
-                    System.out.println();
-                    break;
-            }
-
-        }
-        System.out.println("Digite o nome do arquivo: ");
-        String processName = sc.nextLine();
-        processName = sc.nextLine();
+        int frames = chooseBlockSize();
         MemoryManager mm = new MemoryManager(frames);
-        mm.loadProcessToMemory(processName);
-        mm.loadProcessToMemory(processName);
+
+        loop:while(true){
+            System.out.println();
+            System.out.println("1 - Carregar Processo na memória");
+            System.out.println("2 - Alocar memória ao processo");
+            System.out.println("3 - Liberar memória do processo");
+            System.out.println("4 - Excluir processo da memória");
+            System.out.println("5 - Criar novo bloco de memória");
+            System.out.println("X - Sair do programa\n");
+
+            String uInput = sc.nextLine();
+
+            switch(uInput){
+                case "1":
+                    System.out.println("Digite o nome do arquivo: ");
+                    String processName = sc.nextLine();
+                    int processId = mm.loadProcessToMemory(processName);
+                    System.out.println(mm.getBitMap());
+                    System.out.println(mm.getPageTable(processId));
+                    break;
+
+                case "2":
+                    break;
+                case "3":
+                case "4":
+                case "5":
+                    frames = chooseBlockSize();
+                    mm = new MemoryManager(frames);
+                    break;
+                default:
+                    System.out.println("Saindo...");
+                    break loop;
+            }
+        }
+
+
 
        /*try {
             mm.loadProcessToMemory(processName);
         } catch (Exception e) {
             e.printStackTrace();
         }*/
-
-        System.out.println(mm.getBitMap());
-        System.out.println(mm.getPageTable(0));
-        System.out.println(mm.getPageTable(1));
     }
+
+    public static int chooseBlockSize(){
+        Scanner sc = new Scanner(System.in);
+        int frames = 0;
+        while(true){
+            System.out.println("Por favor, insira a quantidade de blocos do sistema simulado(Digitar apenas 32,64 ou 128).");
+            frames = sc.nextInt();
+            switch(frames) {
+                case 32, 64, 128:
+                    System.out.println("Criando manipulador de memória....");
+                    return frames;
+                default:
+                    System.out.println("Número invalido. Números válidos: 32, 64, 128.");
+                    System.out.println();
+                    break;
+            }
+        }
+    }
+
 }
