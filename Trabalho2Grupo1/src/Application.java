@@ -22,11 +22,12 @@ public class Application {
             System.out.println("3 - Liberar memória do processo");
             System.out.println("4 - Excluir processo da memória");
             System.out.println("5 - Criar novo bloco de memória");
+            System.out.println("6 - Lista de Processos e seus IDs");
             System.out.println("X - Sair do programa\n");
 
             String uInput = sc.nextLine();
 
-            switch(uInput){
+            switch(uInput) {
                 case "1":
                     System.out.println("Digite o nome do arquivo: ");
                     String processName = sc.nextLine();
@@ -53,11 +54,16 @@ public class Application {
                     System.out.println(mm.getBitMap());
                     System.out.println(mm.getPageTable(id));
                     break;
+
                 case "3":
                 case "4":
                 case "5":
                     frames = chooseBlockSize();
                     mm = new MemoryManager(frames);
+                    break;
+                case "6":
+                    System.out.println("Lista de processos:");
+                    mm.printProcessList(mm.getProcessList());
                     break;
                 default:
                     System.out.println("Saindo...");
@@ -66,7 +72,7 @@ public class Application {
         }
     }
 
-    public static int chooseBlockSize(){
+    private static int chooseBlockSize(){
         Scanner sc = new Scanner(System.in);
         int frames = 0;
         while(true){

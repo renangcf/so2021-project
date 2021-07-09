@@ -60,7 +60,7 @@ public class MemoryManager implements ManagementInterface {
             int dataSize = Integer.parseInt((String) prData.get("data"));
             if(dataSize < 1 || dataSize > 928) throw new MemoryOverflowException("Segmento de dados de tamanho inválido\nSegmento deve possuir entre 0 e 928 bytes");
             int totalSize = textSize + dataSize + 64; //64 é o tamanho da pilha
-            if(totalSize > 1024) throw new MemoryOverflowException("Tamanho máximo ultrapassado\nSegmento deve ter ao máximo 1024 bytes");
+            if(totalSize > 1024) throw new MemoryOverflowException("Tamanho máximo ultrapassado\nProcesso deve ter ao máximo 1024 bytes");
 
             int freeSpace = 0;
             for(int i = 0;i<frames;i++){
@@ -624,7 +624,7 @@ public class MemoryManager implements ManagementInterface {
                 break;
             }
         }
-
+        if(!token){throw new InvalidProcessException("Processo inexistente.");}
         return returnPageTable;
     }
 
