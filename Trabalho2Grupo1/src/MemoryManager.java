@@ -107,6 +107,15 @@ public class MemoryManager implements ManagementInterface {
         }
     }
 
+    /**
+     *
+     * @param processName
+     * @return Map
+     * @throws NoSuchFileException
+     * @throws FileFormatException
+     *
+     * Manipulates the program file into a Map.
+     */
     private Map getProcessData(String processName) throws NoSuchFileException,FileFormatException {
         try{
             File process = (new File(processName + ".txt"));
@@ -159,8 +168,8 @@ public class MemoryManager implements ManagementInterface {
                 //Pegar páginas de texto
                 int framesTextPt = (int)Math.ceil((float)pt.getTextSize()/32);
 
-                for(int i = 0;i<=framesTextPt;i++){
-                    pageTable.addNewPage(pt.listPages.get(i).getFirstBitOfFrame(),false,32);
+                for(int i = 0;i<framesTextPt;i++){
+                    pageTable.addNewPage(pt.listPages.get(i).getFirstBitOfFrame(),false,false,32);
                 }
 
                 return;
@@ -186,14 +195,16 @@ public class MemoryManager implements ManagementInterface {
                     lastBiggestHoleSize = holeSize;
                     lastBiggestHoleStart = holeStart;
 
-                    holeSize = 0;
+
                 }
+
+                holeSize = 0;
 
                 //Continuando a busca após o "buraco de alocados"
                 for(int j = i; j < frames; j++){
                     if(frameMapping[j] == 0){
                         holeStart = j;
-                        i = j;
+                        i = j-1;
                         break;
                     }
                 }
@@ -203,7 +214,7 @@ public class MemoryManager implements ManagementInterface {
             if(holeSize * 32 >= totalSize){
                 for(int j = holeStart; j < holeSize+holeStart; j++){
                     frameMapping[j] = 1;
-                    pageTable.addNewPage(j*32,false,32);
+                    pageTable.addNewPage(j*32,false,false,32);
                 }
                 break;
             }
@@ -215,7 +226,7 @@ public class MemoryManager implements ManagementInterface {
                 //alocando os quadros do buraco....
                 for(int j = lastBiggestHoleStart; j < lastHole;j++){
                     frameMapping[j] = 1;
-                    pageTable.addNewPage(j*32,false,32);
+                    pageTable.addNewPage(j*32,false,false,32);
                 }
 
                 //Resetando o processo procurando o novo maior buraco...
@@ -256,14 +267,16 @@ public class MemoryManager implements ManagementInterface {
                     lastBiggestHoleSize = holeSize;
                     lastBiggestHoleStart = holeStart;
 
-                    holeSize = 0;
+
                 }
+
+                holeSize = 0;
 
                 //Continuando a busca após o "buraco de alocados"
                 for(int j = i; j < frames; j++){
                     if(frameMapping[j] == 0){
                         holeStart = j;
-                        i = j;
+                        i = j-1;
                         break;
                     }
                 }
@@ -277,9 +290,9 @@ public class MemoryManager implements ManagementInterface {
                     //Checa se é a ultima página, que poderá oferecer espaço para heap.
                     if(j == (holeSize + holeStart - 1)){
                         int allocatedSpaceOnFrame = totalSize%32;
-                        pageTable.addNewPage(j*32,true,allocatedSpaceOnFrame);
+                        pageTable.addNewPage(j*32,true,false,allocatedSpaceOnFrame);
                     }else{
-                        pageTable.addNewPage(j*32,false,32);
+                        pageTable.addNewPage(j*32,false,false,32);
                     }
                 }
                 break;
@@ -294,7 +307,7 @@ public class MemoryManager implements ManagementInterface {
                     frameMapping[j] = 1;
 
                     //Neste caso, a página nunca será a última.
-                    pageTable.addNewPage(j*32,false,32);
+                    pageTable.addNewPage(j*32,false,false,32);
                 }
 
                 //Resetando o processo procurando o novo maior buraco...
@@ -334,15 +347,15 @@ public class MemoryManager implements ManagementInterface {
                 if(holeSize > lastBiggestHoleSize){
                     lastBiggestHoleSize = holeSize;
                     lastBiggestHoleStart = holeStart;
-
-                    holeSize = 0;
                 }
+
+                holeSize = 0;
 
                 //Continuando a busca após o "buraco de alocados"
                 for(int j = i; j < frames; j++){
                     if(frameMapping[j] == 0){
                         holeStart = j;
-                        i = j;
+                        i = j-1;
                         break;
                     }
                 }
@@ -352,7 +365,7 @@ public class MemoryManager implements ManagementInterface {
             if(holeSize * 32 >= totalSize){
                 for(int j = holeStart; j < holeSize+holeStart; j++){
                     frameMapping[j] = 1;
-                    Page page = new Page(30+j-holeStart,1,j*32,false,32);
+                    Page page = new Page(30+j-holeStart,1,j*32,false,false,32);
                     pageTable.listPages.add(page);
                 }
                 break;
@@ -365,7 +378,7 @@ public class MemoryManager implements ManagementInterface {
                 //alocando os quadros do buraco....
                 for(int j = lastBiggestHoleStart; j < lastHole;j++){
                     frameMapping[j] = 1;
-                    Page page = new Page(30+j-lastBiggestHoleStart,1,j*32,false,32);
+                    Page page = new Page(30+j-lastBiggestHoleStart,1,j*32,false,false,32);
                     pageTable.listPages.add(page);
                 }
 
@@ -384,15 +397,150 @@ public class MemoryManager implements ManagementInterface {
         //TODO: 2.1. Procurar em listPageTables qual pageTable tem o processo com id == processId. (implica em criar getProcessId em pageTable.).
         // Jogar InvalidProcessException caso não encontre esse processId.
 
+        PageTable pageTable = returnPageTable(processId);
+        int totalSize = pageTable.getDataSize() + pageTable.getTextSize() + pageTable.getHeapSize() + 64 + size; // 64 == stackSize
+        if(totalSize > 1024){throw new StackOverflowException("Tamanho máximo de processo excedido. Processo deve ter ao máximo 1024 bytes");}
+
+        int freeSpace = 0;
+        for(int i = 0;i<frames;i++){
+            if(frameMapping[i]==0){
+                freeSpace += 32;
+            }else {
+                Iterator iterator = pageTable.listPages.listIterator();
+                while(iterator.hasNext()){
+                    Page page = (Page) iterator.next();
+
+                    if(page.getIsLastPageOfStaticData()){
+                        freeSpace += 32 - page.getAllocatedSpaceOnFrame();
+
+                    }if(page.getIsLastPageOfHeap()){
+                        freeSpace += 32 - page.getAllocatedSpaceOnFrame();
+                    }
+
+                }
+            }
+        }
+
+        if(freeSpace < totalSize){throw new MemoryOverflowException("Não há espaço restante na memória.");}
+
         //TODO: 2.2. "Alocar" na memória o int size através de first-fit. Lembrar da memória dinâmica!
         // Jogar MemoryOverflowException caso não tenha mais memória sobrando
-        // Jogar StackOverflowException quando ....... ? (nao entendi quando pelo comentario da interface)
+        // Jogar StackOverflowException quando text+data+pilha+Heap > 1024.
 
         //TODO: 2.3. Alterar o frameMapping!
 
+        loadHeap(size,pageTable);
+
         //TODO: 2.4. Retornar a quantidade de memória alocada (size, espero)
 
-        return 0;
+        return size;
+    }
+
+
+    /**
+     *
+     * @param heapSize
+     * @param pageTable
+     *
+     * Aloca a parte de heap do programa (aloca notificando qual é a ultima página, a qual o resto poderá ser usada para o heap.)
+     */
+    private void loadHeap(int heapSize,PageTable pageTable){
+        int lastBiggestHoleSize = 0;
+        int lastBiggestHoleStart = 0;
+
+        int holeStart = 0; //Quadro inicial do buraco sendo analisado
+        int holeSize = 0; //Tamanho em quantidade de quadros
+
+        if(pageTable.getLastPageOfStaticData().getAllocatedSpaceOnFrame() - 32 == 0 && pageTable.getDataSize()%32+pageTable.getHeapSize() > 32 ){
+            Page page = pageTable.getLastPageOfHeap();
+            int freeSpaceOnPage = 32 - page.getAllocatedSpaceOnFrame();
+
+            if(heapSize <= freeSpaceOnPage){
+                page.setAllocatedSpaceOnFrame(page.getAllocatedSpaceOnFrame() + heapSize);
+                pageTable.setHeapSize(heapSize);
+                heapSize = 0;
+            }else{
+                page.setAllocatedSpaceOnFrame(page.getAllocatedSpaceOnFrame()+freeSpaceOnPage);
+                heapSize -= freeSpaceOnPage;
+            }
+        }else if(pageTable.getLastPageOfStaticData().getAllocatedSpaceOnFrame() < 32){
+            Page page = pageTable.getLastPageOfStaticData();
+            int freeSpaceOnPage = 32 - page.getAllocatedSpaceOnFrame();
+
+            if(heapSize <= freeSpaceOnPage){
+                page.setAllocatedSpaceOnFrame(page.getAllocatedSpaceOnFrame() + heapSize);
+                pageTable.setHeapSize(heapSize);
+                heapSize = 0;
+            }else{
+                page.setAllocatedSpaceOnFrame(page.getAllocatedSpaceOnFrame()+freeSpaceOnPage);
+                heapSize -= freeSpaceOnPage;
+            }
+        }
+
+        for(int i = 0; i < frames; i++){
+
+            //quadro está livre, então soma-se 32 ao quadro.
+            if(frameMapping[i] == 0){
+                holeSize += 1;
+
+            }else{ //Quadro não está livre, checa se o buraco atual é o novo maior e continua a busca.
+
+                if(holeSize > lastBiggestHoleSize){
+                    lastBiggestHoleSize = holeSize;
+                    lastBiggestHoleStart = holeStart;
+                }
+
+                holeSize = 0;
+
+                //Continuando a busca após o "buraco de alocados"
+                for(int j = i; j < frames; j++){
+                    if(frameMapping[j] == 0){
+                        holeStart = j;
+                        i = j-1;
+                        break;
+                    }
+                }
+            }
+
+            //Encontrei buraco >= heapSize
+            if(holeSize * 32 >= heapSize){
+                for(int j = holeStart; j < holeSize+holeStart; j++){
+                    frameMapping[j] = 1;
+
+                    //Checa se é a ultima página, que poderá oferecer espaço para heap.
+                    if(j == (holeSize + holeStart - 1)){
+                        int allocatedSpaceOnFrame = heapSize%32;
+                        pageTable.addNewPage(j*32,false,true,allocatedSpaceOnFrame);
+                        pageTable.setHeapSize(pageTable.getHeapSize()+holeSize*32);
+                    }else{
+                        pageTable.addNewPage(j*32,false,false,32);
+                        pageTable.setHeapSize(pageTable.getHeapSize()+holeSize*32);
+                    }
+                }
+                break;
+            }
+
+            //Chegou no final e não encontrou buraco == totalSize
+            if(i == frames - 1){
+                int lastHole = lastBiggestHoleStart + lastBiggestHoleSize;
+
+                //alocando os quadros do buraco....
+                for(int j = lastBiggestHoleStart; j < lastHole;j++){
+                    frameMapping[j] = 1;
+
+                    //Neste caso, a página nunca será a última.
+                    pageTable.addNewPage(j*32,false,false,32);
+                    pageTable.setHeapSize(pageTable.getHeapSize()+holeSize*32);
+                }
+
+                //Resetando o processo procurando o novo maior buraco...
+                i = 0;
+                lastBiggestHoleStart = 0;
+                lastBiggestHoleSize = 0;
+                heapSize -= lastBiggestHoleSize;
+            }
+
+        }
     }
 
     @Override
@@ -466,18 +614,14 @@ public class MemoryManager implements ManagementInterface {
 
     private PageTable returnPageTable(int processId) throws InvalidProcessException{
         Iterator iterator = listPageTables.listIterator();
-        boolean token = true;
+        boolean token = false;
         PageTable returnPageTable = new PageTable(0,"a",1,1);
         while(iterator.hasNext() || token){
-            try {
-                PageTable pagetable = (PageTable) iterator.next();
-                if(pagetable.getIdProcess() == processId){
-                    returnPageTable = pagetable;
-                    token = false;
-                }
-
-            }catch (NoSuchElementException nsee){
-                throw new InvalidProcessException("Id de processo incorreto : " + processId);
+            PageTable pagetable = (PageTable) iterator.next();
+            if(pagetable.getIdProcess() == processId){
+                returnPageTable = pagetable;
+                token = true;
+                break;
             }
         }
 
@@ -489,6 +633,14 @@ public class MemoryManager implements ManagementInterface {
         //TODO: 9.1. Retornar o idProcess e processName de todo item em listPageTable.
 
         return new String[0];
+    }
+
+    public void printProcessList(String[] processList){
+        int processQuantity = listPageTables.size();
+        for(int i = 0; i < processQuantity; i++){
+            System.out.println(processList[i]);
+        }
+
     }
 
 

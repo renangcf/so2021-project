@@ -12,6 +12,7 @@ public class PageTable {
     String processName;
     int textSize;
     int dataSize;
+    int heapSize;
 
 
     public PageTable(int idProcess,String processName,int textSize,int dataSize){
@@ -21,6 +22,7 @@ public class PageTable {
         this.processName = processName;
         this.textSize = textSize;
         this.dataSize = dataSize;
+        this.heapSize = 0;
     }
 
     public int getIdProcess(){
@@ -28,6 +30,10 @@ public class PageTable {
     }
     public String getProcessName(){return processName;}
     public int getTextSize(){return textSize;}
+    public int getDataSize(){return dataSize;}
+    public int getHeapSize(){return heapSize;}
+
+    public void setHeapSize(int newHeapSize){this.heapSize = newHeapSize;}
 
     public String toString(){
         String lista = "";
@@ -43,8 +49,8 @@ public class PageTable {
         return lista;
     }
 
-    public void addNewPage(int firstBitOfFrame,boolean isLastPageOfStaticData,int allocatedSpaceOnFrame){
-        Page page = new Page(currentLatestPage,1,firstBitOfFrame,isLastPageOfStaticData,allocatedSpaceOnFrame);
+    public void addNewPage(int firstBitOfFrame,boolean isLastPageOfStaticData,boolean isLastPageOfHeap,int allocatedSpaceOnFrame){
+        Page page = new Page(currentLatestPage,1,firstBitOfFrame,isLastPageOfStaticData,isLastPageOfHeap,allocatedSpaceOnFrame);
         currentLatestPage++;
 
         listPages.add(page);
@@ -65,4 +71,30 @@ public class PageTable {
 
         return result;
     }
+
+    public Page getLastPageOfStaticData(){
+        Page result = new Page(-1,-1,-1,false,false,32);
+        Iterator iterator = listPages.listIterator();
+        while (iterator.hasNext()){
+            Page page = (Page) iterator.next();
+            if(page.getIsLastPageOfStaticData()){
+                result = page;
+                break;
+            }
+        }
+        return result;
+    }
+
+    public Page getLastPageOfHeap(){
+        Page result = new Page(-1,-1,-1,false,false,32);
+        Iterator iterator = listPages.listIterator();
+        while (iterator.hasNext()){
+            Page page = (Page) iterator.next();
+            if(page.getIsLastPageOfHeap()){
+                result = page;
+            }
+        }
+        return result;
+    }
+
 }

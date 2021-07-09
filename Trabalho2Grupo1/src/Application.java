@@ -1,7 +1,4 @@
-import Exceptions.FileFormatException;
-import Exceptions.InvalidProcessException;
-import Exceptions.MemoryOverflowException;
-import Exceptions.NoSuchFileException;
+import Exceptions.*;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
@@ -10,7 +7,7 @@ import java.util.Scanner;
 
 public class Application {
 
-    public static void main(String args[]) throws InvalidProcessException, MemoryOverflowException, FileFormatException, NoSuchFileException {
+    public static void main(String args[]) throws InvalidProcessException, MemoryOverflowException, FileFormatException, NoSuchFileException, StackOverflowException {
 
         Scanner sc = new Scanner(System.in);
         System.out.println("Bem vindo ao sistema");
@@ -34,11 +31,27 @@ public class Application {
                     System.out.println("Digite o nome do arquivo: ");
                     String processName = sc.nextLine();
                     int processId = mm.loadProcessToMemory(processName);
-                    System.out.println(mm.getBitMap());
-                    System.out.println(mm.getPageTable(processId));
+                    //System.out.println(mm.getBitMap());
+                    //System.out.println(mm.getPageTable(processId));
+                    System.out.println();
+                    System.out.println("ID do novo processo: " + processId);
                     break;
 
                 case "2":
+                    System.out.println("Digite o id do processo: ");
+                    int id = Integer.parseInt(sc.nextLine());
+                    System.out.println("Digite o tamanho do heap: ");
+                    int size = Integer.parseInt(sc.nextLine());
+                    while (size < 0){
+                        System.out.println("Tamanho Inválido. \n Deve ser maior ou igual a 0. \n Digite novamente o tamanho do heap:");
+                        size = Integer.parseInt(sc.nextLine());
+                        break;
+                    }
+
+                    int heapSize = mm.allocateMemoryToProcess(id, size);
+                    System.out.println("Heap Size alocado: " + heapSize);
+                    System.out.println(mm.getBitMap());
+                    System.out.println(mm.getPageTable(id));
                     break;
                 case "3":
                 case "4":
@@ -51,14 +64,6 @@ public class Application {
                     break loop;
             }
         }
-
-
-
-       /*try {
-            mm.loadProcessToMemory(processName);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }*/
     }
 
     public static int chooseBlockSize(){
