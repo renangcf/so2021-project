@@ -41,7 +41,7 @@ public class PageTable {
 
         Page page = (Page) iterator.next();
         lista = lista + page.toString();
-        while (iterator.hasNext()) {
+        do{
             page = (Page) iterator.next();
             lista = lista + "\n" + page.toString();
         } while (iterator.hasNext());

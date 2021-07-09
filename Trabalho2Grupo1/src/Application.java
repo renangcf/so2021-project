@@ -94,8 +94,9 @@ public class Application {
                 case "4":
                     break;
                 case "5":
-                    frames = chooseBlockSize();
-                    mm = new MemoryManager(frames);
+                    System.out.println("Limpando Memória...");
+                    mm.resetMemory();
+                    System.out.println("Memória limpa!!");
                     break;
 
                 case "6":

@@ -603,7 +603,7 @@ public class MemoryManager implements ManagementInterface {
     @Override
     public void excludeProcessFromMemory(int processId) throws InvalidProcessException {
         //TODO: 4.1. Procurar por pageTable com processId.
-        // Jogar InvalidProcessException caso não encontre esse processId.
+        // Jogar InvalidProcessException caso não encontre esse processId. (FEITO)
 
         PageTable pageTable = returnPageTable(processId);
 
