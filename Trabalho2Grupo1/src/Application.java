@@ -7,7 +7,7 @@ import java.util.Scanner;
 
 public class Application {
 
-    public static void main(String args[]) throws InvalidProcessException, MemoryOverflowException, FileFormatException, NoSuchFileException, StackOverflowException {
+    public static void main(String args[]) throws InvalidProcessException, MemoryOverflowException, FileFormatException, NoSuchFileException, StackOverflowException, NoSuchMemoryException {
 
         Scanner sc = new Scanner(System.in);
         System.out.println("Bem vindo ao sistema");
@@ -49,7 +49,7 @@ public class Application {
                         break;
                     }
 
-                    int heapSize = mm.allocateMemoryToProcess(id, size);
+                    heapSize = mm.allocateMemoryToProcess(id, size);
                     System.out.println("Heap Size alocado: " + heapSize);
                     System.out.println(mm.getBitMap());
                     System.out.println(mm.getPageTable(id));

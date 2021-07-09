@@ -26,4 +26,6 @@ public class Page {
     public int getAllocatedSpaceOnFrame(){return allocatedSpaceOnFrame;}
 
     public void setAllocatedSpaceOnFrame(int allocatedSpaceOnFrame){this.allocatedSpaceOnFrame = allocatedSpaceOnFrame;}
+    public void setValidationBit(int newValidationBit){this.validationBit = newValidationBit;}
+    public void setIsLastPageOfHeapData(boolean newIsLastPageOfHeapData){this.isLastPageOfHeapData = newIsLastPageOfHeapData;}
 }

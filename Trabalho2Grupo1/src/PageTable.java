@@ -60,14 +60,14 @@ public class PageTable {
         int result = -1;
 
         Iterator iterator = listPages.listIterator();
-        while(iterator.hasNext()){
+        do{
             Page page = (Page) iterator.next();
 
             if(pageId == page.getIdPage()){
                 result = page.getFirstBitOfFrame();
             }
 
-        }
+        }while(iterator.hasNext());
 
         return result;
     }
@@ -88,13 +88,40 @@ public class PageTable {
     public Page getLastPageOfHeap(){
         Page result = new Page(-1,-1,-1,false,false,32);
         Iterator iterator = listPages.listIterator();
-        while (iterator.hasNext()){
+        do{
             Page page = (Page) iterator.next();
             if(page.getIsLastPageOfHeap()){
                 result = page;
             }
-        }
+        }while (iterator.hasNext());
         return result;
+    }
+
+    public void removePage(int idPage){
+        Iterator iterator = listPages.listIterator();
+        int i = 0;
+        do{
+            Page page = (Page) iterator.next();
+            if(page.getIdPage()==idPage){
+                listPages.remove(i);
+                break;
+            }
+            i++;
+            currentLatestPage--;
+        }while(iterator.hasNext());
+    }
+
+    public Page getPageById(int id){
+        Page result = new Page(-1,-1,-1,false,false,-1);
+        Iterator iterator = listPages.listIterator();
+        do{
+            Page page = (Page) iterator.next();
+            if(page.getIdPage()==id){
+                result = page;
+                break;
+            }
+        }while(iterator.hasNext());
+        return  result;
     }
 
 }

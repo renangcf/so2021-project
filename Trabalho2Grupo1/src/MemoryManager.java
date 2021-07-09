@@ -550,6 +550,12 @@ public class MemoryManager implements ManagementInterface {
         //TODO: 3.1. Exato oposto da função acima. Procurar por processId.
         // Jogar InvalidProcessException caso não encontre esse processId.
 
+        PageTable pageTable = returnPageTable(processId);
+        if(size > pageTable.getHeapSize()){throw new NoSuchMemoryException("Memória dinâmica alocada menor do que a quantidade inserida.");}
+
+        freeHeap(size,pageTable);
+
+
         //TODO: 3.2. "Liberar" size (lembrar, só pode tirar do heap. Isso implica que temos que criar um "identificador" em Page pra ver se é
         // De texto/data/pilha ou se é de heap? não sei.
 
@@ -557,7 +563,52 @@ public class MemoryManager implements ManagementInterface {
 
         //TODO: 3.4. Retornar a quantidade de memória liberada (size, espero)
 
-        return 0;
+        return size;
+    }
+
+    /**
+     *
+     * @param freeHeap
+     * @param pageTable
+     *
+     * libera a parte de heap do programa (aloca notificando qual é a ultima página, a qual o resto poderá ser usada para o heap.)
+     */
+    private void freeHeap(int freeHeap, PageTable pageTable){
+
+
+        // Caso hajam páginas que abriguem somente heap
+        while(freeHeap != 0){
+            //  Caso NÃO hajam páginas que abriguem somente heap
+            if(pageTable.getLastPageOfStaticData().getAllocatedSpaceOnFrame() < 32 || (32 - pageTable.getDataSize()%32) == pageTable.getHeapSize()){
+                Page page = pageTable.getLastPageOfStaticData();
+                page.setAllocatedSpaceOnFrame(page.getAllocatedSpaceOnFrame()-freeHeap);
+                freeHeap = 0;
+            }
+
+            Page page = pageTable.getLastPageOfHeap();
+            //Caso a página tenha alocada a quantidade restante que deseja-se liberar ou mais.
+            if(freeHeap < page.getAllocatedSpaceOnFrame() ){
+                page.setAllocatedSpaceOnFrame(page.getAllocatedSpaceOnFrame()-freeHeap);
+                freeHeap = 0;
+            }else{
+                page.setAllocatedSpaceOnFrame(0);
+                page.setValidationBit(0);
+                int index = page.getFirstBitOfFrame()/32;
+                frameMapping[index] = 0;
+
+                //  Caso não seja primeira página exclusivamente de heap, seta a página anterior como a ultima.
+                if(page.getIdPage() > pageTable.getLastPageOfStaticData().getIdPage()+1){
+                   Page p = pageTable.getPageById(page.getIdPage()-1);
+                   p.setIsLastPageOfHeapData(true);
+               }
+
+                freeHeap -= page.getAllocatedSpaceOnFrame();
+                pageTable.setHeapSize(pageTable.heapSize-page.getAllocatedSpaceOnFrame());
+
+                pageTable.removePage(page.getIdPage());
+                page.setIsLastPageOfHeapData(false);
+            }
+        }
     }
 
     @Override
