@@ -456,6 +456,8 @@ public class MemoryManager implements ManagementInterface {
                 page.setAllocatedSpaceOnFrame(page.getAllocatedSpaceOnFrame()+freeSpaceOnPage);
                 heapSize -= freeSpaceOnPage;
             }
+
+            page.setIsLastPageOfHeapData(false);
         }else if(pageTable.getLastPageOfStaticData().getAllocatedSpaceOnFrame() < 32){
             Page page = pageTable.getLastPageOfStaticData();
             int freeSpaceOnPage = 32 - page.getAllocatedSpaceOnFrame();
@@ -580,11 +582,6 @@ public class MemoryManager implements ManagementInterface {
                 page.setAllocatedSpaceOnFrame(page.getAllocatedSpaceOnFrame()-freeHeap);
                 freeHeap = 0;
             }else{
-                page.setAllocatedSpaceOnFrame(0);
-                page.setValidationBit(0);
-                int index = page.getFirstBitOfFrame()/32;
-                frameMapping[index] = 0;
-
                 //  Caso não seja primeira página exclusivamente de heap, seta a página anterior como a ultima.
                 if(page.getIdPage() > pageTable.getLastPageOfStaticData().getIdPage()+1){
                    Page p = pageTable.getPageById(page.getIdPage()-1);
@@ -596,6 +593,11 @@ public class MemoryManager implements ManagementInterface {
 
                 pageTable.removePage(page.getIdPage());
                 page.setIsLastPageOfHeapData(false);
+
+                page.setAllocatedSpaceOnFrame(0);
+                page.setValidationBit(0);
+                int index = page.getFirstBitOfFrame()/32;
+                frameMapping[index] = 0;
             }
         }
     }
@@ -607,8 +609,56 @@ public class MemoryManager implements ManagementInterface {
 
         PageTable pageTable = returnPageTable(processId);
 
+        //Checando se existe outra processo com o mesmo nome para evitar excluir dados de texto.
+        boolean checkSameProcess = false;
         Iterator iterator = listPageTables.listIterator();
+        while (iterator.hasNext()){
+            PageTable pt = (PageTable) iterator.next();
+            if(pt.getProcessName().equals(pageTable.getProcessName()) && pt.getIdProcess() != pageTable.getIdProcess()){
+                checkSameProcess = true;
+                break;
+            }
+        }
 
+        if(!checkSameProcess){ //Não há processo igual
+            Iterator ite = pageTable.listPages.listIterator();
+            while (ite.hasNext()){
+                Page page = (Page) ite.next();
+                int firstBit = page.getFirstBitOfFrame();
+                frameMapping[firstBit/32] = 0;
+            }
+
+
+        }else{ //Há um processo igual, não deve-se excluir os processos de Texto.
+            int framesTextPt = (int)Math.ceil((float)pageTable.getTextSize()/32);
+            Iterator ite = pageTable.listPages.listIterator();
+
+            //Ignorando as primeiras páginas (de texto)
+            for(int i = 0; i < framesTextPt; i++){
+                ite.next();
+            }
+            while(ite.hasNext()){
+                Page page = (Page) ite.next();
+                int firstBit = page.getFirstBitOfFrame();
+                frameMapping[firstBit/32] = 0;
+            }
+
+
+        }
+
+        //Finalmente, removendo este processo de listTablePages.
+        Iterator iter = listPageTables.listIterator();
+        int i = 0;
+        while(iter.hasNext()){
+            PageTable pt = (PageTable) iter.next();
+
+            if(pt.getIdProcess() == pageTable.getIdProcess()){
+                listPageTables.remove(i);
+                break;
+            }
+
+            i++;
+        }
 
         //TODO: 4.2. Excluir esse cara,basicamente
         // Cuidado, não sei se vai ter que fazer + alguma verificação no caso de ter 2 processos "iguais" por causa que eles compartilham algumas partes.
@@ -628,13 +678,21 @@ public class MemoryManager implements ManagementInterface {
     public int getPhysicalAddress(int processId, int logicalAddress) throws InvalidProcessException, InvalidAddressException {
         //TODO: 6.1. Procurar por pageTable com processId.
         // Jogar InvalidProcessException caso não encontre esse processId.
+        if(logicalAddress>1023 || logicalAddress < 0){throw new InvalidAddressException("Endereço lógico inválido. Deve estar entre 0 e 1023");}
+        PageTable pageTable = returnPageTable(processId);
 
         //TODO: 6.2. Não entendi direito oq ele quis dizer com "endereço físico", supostamente ele pode estar quebrado e varias partes diferentes, não?
         // Jogar InvalidAddressException caso o endereço seja menor do que 0 ou maior do que 1023 ou endereco invalido dentro do processo.
+        int index = logicalAddress/32;
+        int rest = logicalAddress%32;
+        int physicalAddress;
+
+        Page page = pageTable.listPages.get(index);
+        physicalAddress = page.getFirstBitOfFrame() + rest;
 
         //TODO: 6.3. Retornar esse endereço físico calculado.
 
-        return 0;
+        return physicalAddress;
     }
 
     @Override
@@ -680,14 +738,19 @@ public class MemoryManager implements ManagementInterface {
         String[] lista = new String[listPageTables.size()];
         int i = 0;
 
-        Iterator iterator = listPageTables.listIterator();
-        do{
-            PageTable pageTable = (PageTable) iterator.next();
-            lista[i] = "ID: " + pageTable.getIdProcess() + " - " + pageTable.getProcessName();
-            i++;
-        } while(iterator.hasNext());
+        if(listPageTables.size() == 0){
+            return lista;
+        }else{
+            Iterator iterator = listPageTables.listIterator();
+            while(iterator.hasNext()){
+                PageTable pageTable = (PageTable) iterator.next();
+                lista[i] = "ID: " + pageTable.getIdProcess() + " - " + pageTable.getProcessName();
+                i++;
+            }
 
-        return lista;
+            return lista;
+        }
+
     }
 
     public void printProcessList(String[] processList){
@@ -697,9 +760,6 @@ public class MemoryManager implements ManagementInterface {
         }
 
     }
-
-
-
 
 
     //TODO: 10. Fazer as Exceptions. (FEITO)

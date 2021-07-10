@@ -21,7 +21,7 @@ public class Application {
             System.out.println("2 - Alocar memória ao processo");
             System.out.println("3 - Liberar memória do processo");
             System.out.println("4 - Excluir processo da memória");
-            System.out.println("5 - Criar novo bloco de memória");
+            System.out.println("5 - Limpar bloco de memória");
             System.out.println("6 - Lista de Processos e seus IDs");
             System.out.println("X - Sair do programa\n");
 
@@ -92,11 +92,18 @@ public class Application {
                     break;
 
                 case "4":
+                    System.out.println("Digite o id do processo: ");
+                    id = Integer.parseInt(sc.nextLine());
+                    mm.excludeProcessFromMemory(id);
+                    System.out.println(mm.getBitMap());
+                    mm.printProcessList(mm.getProcessList());
                     break;
                 case "5":
                     System.out.println("Limpando Memória...");
                     mm.resetMemory();
                     System.out.println("Memória limpa!!");
+                    mm.printProcessList(mm.getProcessList());
+                    System.out.println(mm.getBitMap());
                     break;
 
                 case "6":

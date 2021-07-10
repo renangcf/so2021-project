@@ -107,8 +107,9 @@ public class PageTable {
                 break;
             }
             i++;
-            currentLatestPage--;
         }while(iterator.hasNext());
+
+        currentLatestPage--;
     }
 
     public Page getPageById(int id){
