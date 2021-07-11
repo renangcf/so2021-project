@@ -16,7 +16,7 @@ public class Page {
     }
 
     public String toString(){
-        String stringPage = Integer.toString(idPage) + " " + Integer.toString(firstBitOfFrame) + " " + Integer.toString(validationBit);
+        String stringPage = String.format("% 3d", idPage) + "   " + String.format("%04d", firstBitOfFrame) + "         " + String.format("%01d",validationBit);
         return stringPage;
     }
     public int getFirstBitOfFrame(){return firstBitOfFrame;}

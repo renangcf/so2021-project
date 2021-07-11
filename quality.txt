@@ -1,0 +1,4 @@
+Coisas para arrumar
+- (e) Ao deletar Heap, quando heap para deletar > heap atual, mostrar qual o tamanho atual do heap no erro/exception jogado
+- validar o tamanho de alocação/remoção de heap na classe do heap
+- bit de validacao: qnd eh o deletar ou manter a pagina

@@ -17,18 +17,22 @@ public class Application {
 
         loop:while(true){
             System.out.println();
-            System.out.println("1 - Carregar Processo na memória");
-            System.out.println("2 - Alocar memória ao processo");
-            System.out.println("3 - Liberar memória do processo");
-            System.out.println("4 - Excluir processo da memória");
-            System.out.println("5 - Limpar bloco de memória");
-            System.out.println("6 - Lista de Processos e seus IDs");
+            System.out.println("1 - Carregar um processo na memória");
+            System.out.println("2 - Alocar Heap de um processo");
+            System.out.println("3 - Liberar Heap de um processo");
+            System.out.println("4 - Excluir um processo da memória");
+            System.out.println("5 - Listar processos e seus IDs");
+            System.out.println("6 - Mostrar bitmap da memória física");
+            System.out.println("7 - Mostrar tabela de página de um processo");
+            System.out.println("8 - Mostrar endereço físico de um processo apartir do lógico");
+            System.out.println("9 - Limpar bloco de memória");
             System.out.println("X - Sair do programa\n");
 
             String uInput = sc.nextLine();
             int id = 0;
             int size = 0;
             int heapSize = 0;
+            int logAddress = 0;
 
             switch(uInput) {
                 case "1":
@@ -59,9 +63,7 @@ public class Application {
                         }
 
                         heapSize = mm.allocateMemoryToProcess(id, size);
-                        System.out.println("Heap Size alocado: " + heapSize);
-                        System.out.println(mm.getBitMap());
-                        System.out.println(mm.getPageTable(id));
+                        System.out.println("Tamanho atual do heap: " + heapSize);
                         break;
                     } catch (Exception e){
                         System.out.println(e);
@@ -81,9 +83,7 @@ public class Application {
                             break;
                         }
                         heapSize = mm.freeMemoryFromProcess(id, size);
-                        System.out.println("Heap Size desalocado: " + heapSize);
-                        System.out.println(mm.getBitMap());
-                        System.out.println(mm.getPageTable(id));
+                        System.out.println("Tamanho atual do heap: " + heapSize);
                     } catch(Exception e){
                         System.out.println(e);
                         break;
@@ -92,21 +92,17 @@ public class Application {
                     break;
 
                 case "4":
-                    System.out.println("Digite o id do processo: ");
-                    id = Integer.parseInt(sc.nextLine());
-                    mm.excludeProcessFromMemory(id);
-                    System.out.println(mm.getBitMap());
-                    mm.printProcessList(mm.getProcessList());
-                    break;
-                case "5":
-                    System.out.println("Limpando Memória...");
-                    mm.resetMemory();
-                    System.out.println("Memória limpa!!");
-                    mm.printProcessList(mm.getProcessList());
-                    System.out.println(mm.getBitMap());
-                    break;
+                    try{
+                        System.out.print("Digite o id do processo: ");
+                        id = Integer.parseInt(sc.nextLine());
+                        mm.excludeProcessFromMemory(id);
+                        System.out.println();
+                        break;
+                    } catch(Exception e){
+                        System.out.println(e);
+                    }
 
-                case "6":
+                case "5":
                     try {
                         System.out.println("Lista de processos:");
                         mm.printProcessList(mm.getProcessList());
@@ -115,6 +111,52 @@ public class Application {
                         System.out.println(e);
                         break;
                     }
+
+                case "6":
+                    try {
+                        System.out.println("Bit map dos processos: ");
+                        System.out.println(mm.getBitMap());
+                        break;
+                    } catch(Exception e){
+                        System.out.println(e);
+                        break;
+                    }
+                case "7":
+                    try{
+                        System.out.print("Digite o id do processo: ");
+                        id = Integer.parseInt(sc.nextLine());
+                        System.out.println("Tabela de página do processo " + id + ": \n ID|End.Fis.|Bit Validação");
+                        System.out.println(mm.getPageTable(id));
+                        break;
+                    } catch(Exception e){
+                        System.out.println(e);
+                        break;
+                    }
+
+                case "8":
+                    try{
+                        System.out.print("Digite o id do processo: ");
+                        id = Integer.parseInt(sc.nextLine());
+                        System.out.print("Digite um endereço lógico: ");
+                        logAddress = Integer.parseInt(sc.nextLine());
+                        System.out.println( "\nO endereço lógico \"" + logAddress + "\" aponta para o endereço físico \"" + mm.getPhysicalAddress(id, logAddress) + "\"");
+
+                        break;
+                    }catch(Exception e){
+                        System.out.println(e);
+                        break;
+                    }
+
+                case "9":
+                    System.out.println("Limpando Memória...");
+                    mm.resetMemory();
+                    System.out.println("Memória limpa!!");
+                    break;
+
+                case "X", "x":
+                    System.out.println("Saindo...");
+                    break loop;
+
                 default:
                     System.out.println("Saindo...");
                     break loop;

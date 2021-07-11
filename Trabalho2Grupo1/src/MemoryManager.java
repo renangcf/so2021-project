@@ -547,7 +547,7 @@ public class MemoryManager implements ManagementInterface {
         // Jogar InvalidProcessException caso não encontre esse processId.
 
         PageTable pageTable = returnPageTable(processId);
-        if(size > pageTable.getHeapSize()){throw new NoSuchMemoryException("Memória dinâmica alocada menor do que a quantidade inserida.");}
+        if(size > pageTable.getHeapSize()){throw new NoSuchMemoryException("Memória dinâmica alocada menor do que a quantidade inserida. \nTamanho atualmente alocado: " + pageTable.getHeapSize());}
 
         freeHeap(size,pageTable);
 
@@ -684,15 +684,29 @@ public class MemoryManager implements ManagementInterface {
         //TODO: 6.1. Procurar por pageTable com processId.
         // Jogar InvalidProcessException caso não encontre esse processId.
         if(logicalAddress>1023 || logicalAddress < 0){throw new InvalidAddressException("Endereço lógico inválido. Deve estar entre 0 e 1023");}
+
         PageTable pageTable = returnPageTable(processId);
+        int index = logicalAddress/32;
+        Iterator iterator = pageTable.listPages.listIterator();
+        boolean token = false;
+        do{
+            Page page = (Page) iterator.next();
+            if(page.getIdPage() == index){
+                token = true;
+                break;
+            }
+        } while(iterator.hasNext());
+        if(!token){
+            throw new InvalidAddressException("Endereço lógico inválido");
+        }
 
         //TODO: 6.2. Não entendi direito oq ele quis dizer com "endereço físico", supostamente ele pode estar quebrado e varias partes diferentes, não?
         // Jogar InvalidAddressException caso o endereço seja menor do que 0 ou maior do que 1023 ou endereco invalido dentro do processo.
-        int index = logicalAddress/32;
+
         int rest = logicalAddress%32;
         int physicalAddress;
 
-        Page page = pageTable.listPages.get(index);
+        Page page = pageTable.getPageById(index);
         physicalAddress = page.getFirstBitOfFrame() + rest;
 
         //TODO: 6.3. Retornar esse endereço físico calculado.
@@ -749,7 +763,7 @@ public class MemoryManager implements ManagementInterface {
             Iterator iterator = listPageTables.listIterator();
             while(iterator.hasNext()){
                 PageTable pageTable = (PageTable) iterator.next();
-                lista[i] = "ID: " + pageTable.getIdProcess() + " - " + pageTable.getProcessName();
+                lista[i] = "\n" + "ID: " + pageTable.getIdProcess() + ",\n" + "Nome: " + pageTable.getProcessName();
                 i++;
             }
 
