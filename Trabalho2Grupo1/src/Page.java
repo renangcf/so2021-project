@@ -19,6 +19,7 @@ public class Page {
         String stringPage = String.format("% 3d", idPage) + "   " + String.format("%04d", firstBitOfFrame) + "         " + String.format("%01d",validationBit);
         return stringPage;
     }
+
     public int getFirstBitOfFrame(){return firstBitOfFrame;}
     public int getIdPage(){return idPage;}
     public boolean getIsLastPageOfStaticData(){return isLastPageOfStaticData;}

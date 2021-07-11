@@ -37,11 +37,9 @@ public class Application {
             switch(uInput) {
                 case "1":
                     try {
-                        System.out.println("Digite o nome do arquivo: ");
+                        System.out.print("Digite o nome do arquivo: ");
                         String processName = sc.nextLine();
                         int processId = mm.loadProcessToMemory(processName);
-                        //System.out.println(mm.getBitMap());
-                        //System.out.println(mm.getPageTable(processId));
                         System.out.println();
                         System.out.println("ID do novo processo: " + processId);
                         break;
@@ -52,16 +50,17 @@ public class Application {
 
                 case "2":
                     try{
-                        System.out.println("Digite o id do processo: ");
+                        System.out.print("Digite o id do processo: ");
                         id = Integer.parseInt(sc.nextLine());
-                        System.out.println("Digite o tamanho do heap: ");
+                        System.out.print("Digite o tamanho a adicionar ao heap: ");
                         size = Integer.parseInt(sc.nextLine());
                         while (size < 0){
-                            System.out.println("Tamanho Inválido. \n Deve ser maior ou igual a 0. \n Digite novamente o tamanho do heap:");
+                            System.out.println("Tamanho Inválido. \n Deve ser maior ou igual a 0. \n Digite novamente o tamanho a adicionar ao heap:");
                             size = Integer.parseInt(sc.nextLine());
                             break;
                         }
 
+                        System.out.println();
                         heapSize = mm.allocateMemoryToProcess(id, size);
                         System.out.println("Tamanho atual do heap: " + heapSize);
                         break;
@@ -73,15 +72,17 @@ public class Application {
 
                 case "3":
                     try{
-                        System.out.println("Digite o id do processo: ");
+                        System.out.print("Digite o id do processo: ");
                         id = Integer.parseInt(sc.nextLine());
-                        System.out.println("Digite o tamanho do heap: ");
+                        System.out.print("Digite o tamanho a remover do heap: ");
                         size = Integer.parseInt(sc.nextLine());
                         while (size < 0){
-                            System.out.println("Tamanho Inválido. \n Deve ser maior ou igual a 0. \n Digite novamente o tamanho do heap:");
+                            System.out.println("Tamanho Inválido. \n Deve ser maior ou igual a 0. \n Digite novamente o tamanho a remover do heap:");
                             size = Integer.parseInt(sc.nextLine());
                             break;
                         }
+
+                        System.out.println();
                         heapSize = mm.freeMemoryFromProcess(id, size);
                         System.out.println("Tamanho atual do heap: " + heapSize);
                     } catch(Exception e){
@@ -104,7 +105,7 @@ public class Application {
 
                 case "5":
                     try {
-                        System.out.println("Lista de processos:");
+                        System.out.println("Lista de processos carregados: ");
                         mm.printProcessList(mm.getProcessList());
                         break;
                     } catch(Exception e){
@@ -158,8 +159,8 @@ public class Application {
                     break loop;
 
                 default:
-                    System.out.println("Saindo...");
-                    break loop;
+                    System.out.println("Opção inválida!");
+                    break;
             }
         }
     }
@@ -168,7 +169,7 @@ public class Application {
         Scanner sc = new Scanner(System.in);
         int frames = 0;
         while(true){
-            System.out.println("Por favor, insira a quantidade de blocos do sistema simulado(Digitar apenas 32,64 ou 128).");
+            System.out.println("Por favor, insira a quantidade de blocos do sistema simulado (Digitar apenas 32,64 ou 128).");
             frames = sc.nextInt();
             switch(frames) {
                 case 32, 64, 128:
