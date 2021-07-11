@@ -450,24 +450,25 @@ public class MemoryManager implements ManagementInterface {
 
             if(heapSize <= freeSpaceOnPage){
                 page.setAllocatedSpaceOnFrame(page.getAllocatedSpaceOnFrame() + heapSize);
-                pageTable.setHeapSize(heapSize);
+                pageTable.setHeapSize(pageTable.getHeapSize()+heapSize);
                 heapSize = 0;
             }else{
                 page.setAllocatedSpaceOnFrame(page.getAllocatedSpaceOnFrame()+freeSpaceOnPage);
+                pageTable.setHeapSize(pageTable.getHeapSize()+freeSpaceOnPage);
                 heapSize -= freeSpaceOnPage;
+                page.setIsLastPageOfHeapData(false);
             }
-
-            page.setIsLastPageOfHeapData(false);
         }else if(pageTable.getLastPageOfStaticData().getAllocatedSpaceOnFrame() < 32){
             Page page = pageTable.getLastPageOfStaticData();
             int freeSpaceOnPage = 32 - page.getAllocatedSpaceOnFrame();
 
             if(heapSize <= freeSpaceOnPage){
                 page.setAllocatedSpaceOnFrame(page.getAllocatedSpaceOnFrame() + heapSize);
-                pageTable.setHeapSize(heapSize);
+                pageTable.setHeapSize(pageTable.getHeapSize()+heapSize);
                 heapSize = 0;
             }else{
                 page.setAllocatedSpaceOnFrame(page.getAllocatedSpaceOnFrame()+freeSpaceOnPage);
+                pageTable.setHeapSize(pageTable.getHeapSize()+freeSpaceOnPage);
                 heapSize -= freeSpaceOnPage;
             }
         }
@@ -506,10 +507,11 @@ public class MemoryManager implements ManagementInterface {
                     if(j == (holeSize + holeStart - 1)){
                         int allocatedSpaceOnFrame = heapSize%32;
                         pageTable.addNewPage(j*32,false,true, allocatedSpaceOnFrame);
-                        pageTable.setHeapSize(pageTable.getHeapSize()+holeSize*32);
+                        pageTable.setHeapSize(pageTable.getHeapSize()+heapSize);
                     }else{
                         pageTable.addNewPage(j*32,false,false,32);
-                        pageTable.setHeapSize(pageTable.getHeapSize()+holeSize*32);
+                        pageTable.setHeapSize(pageTable.getHeapSize()+32);
+                        heapSize -= 32;
                     }
                 }
                 break;
@@ -525,14 +527,15 @@ public class MemoryManager implements ManagementInterface {
 
                     //Neste caso, a página nunca será a última.
                     pageTable.addNewPage(j*32,false,false,32);
-                    pageTable.setHeapSize(pageTable.getHeapSize()+holeSize*32);
                 }
+
+                pageTable.setHeapSize(pageTable.getHeapSize()+lastBiggestHoleSize*32);
 
                 //Resetando o processo procurando o novo maior buraco...
                 i = 0;
                 lastBiggestHoleStart = 0;
                 lastBiggestHoleSize = 0;
-                heapSize -= lastBiggestHoleSize;
+                heapSize -= lastBiggestHoleSize*32;
             }
 
         }
@@ -573,6 +576,7 @@ public class MemoryManager implements ManagementInterface {
             if(pageTable.getLastPageOfStaticData().getAllocatedSpaceOnFrame() < 32 || (32 - pageTable.getDataSize()%32) == pageTable.getHeapSize()){
                 Page page = pageTable.getLastPageOfStaticData();
                 page.setAllocatedSpaceOnFrame(page.getAllocatedSpaceOnFrame()-freeHeap);
+                pageTable.setHeapSize(pageTable.getHeapSize()-freeHeap);
                 freeHeap = 0;
             }
 
@@ -580,6 +584,7 @@ public class MemoryManager implements ManagementInterface {
             //Caso a página tenha alocada a quantidade restante que deseja-se liberar ou mais.
             if(freeHeap < page.getAllocatedSpaceOnFrame() ){
                 page.setAllocatedSpaceOnFrame(page.getAllocatedSpaceOnFrame()-freeHeap);
+                pageTable.setHeapSize(pageTable.getHeapSize()-freeHeap);
                 freeHeap = 0;
             }else{
                 //  Caso não seja primeira página exclusivamente de heap, seta a página anterior como a ultima.
@@ -589,7 +594,7 @@ public class MemoryManager implements ManagementInterface {
                }
 
                 freeHeap -= page.getAllocatedSpaceOnFrame();
-                pageTable.setHeapSize(pageTable.heapSize-page.getAllocatedSpaceOnFrame());
+                pageTable.setHeapSize(pageTable.getHeapSize()-page.getAllocatedSpaceOnFrame());
 
                 pageTable.removePage(page.getIdPage());
                 page.setIsLastPageOfHeapData(false);
