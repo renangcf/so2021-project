@@ -6,7 +6,9 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 public class PageTable {
-    List<Page> listPages; //Max size == 32.
+    //List<Page> listPages; //Max size == 32.
+    Page[] listPages;
+
     int currentLatestPage; //Ultima página registrada, desconsiderando as páginas que alocam a pilha
     int idProcess;
     String processName;
@@ -16,7 +18,12 @@ public class PageTable {
 
 
     public PageTable(int idProcess,String processName,int textSize,int dataSize){
-        listPages = new ArrayList<>();
+        listPages = new Page[32];
+        for(int i = 0; i < 32; i++){
+            Page page = new Page(i,0,-1,false,false,0);
+            listPages[i] = page;
+        }
+
         this.currentLatestPage = 0;
         this.idProcess = idProcess;
         this.processName = processName;
@@ -37,92 +44,69 @@ public class PageTable {
 
     public String toString(){
         String lista = "";
-        Iterator iterator = listPages.listIterator();
 
-        Page page = (Page) iterator.next();
-        lista = lista + page.toString();
-        do{
-            page = (Page) iterator.next();
+        for(int i = 0; i < 32; i++){
+            Page page = listPages[i];
             lista = lista + "\n" + page.toString();
-        } while (iterator.hasNext());
-
+        }
         return lista;
     }
 
     public void addNewPage(int firstBitOfFrame,boolean isLastPageOfStaticData,boolean isLastPageOfHeap,int allocatedSpaceOnFrame){
         Page page = new Page(currentLatestPage,1,firstBitOfFrame,isLastPageOfStaticData,isLastPageOfHeap,allocatedSpaceOnFrame);
+        listPages[currentLatestPage] = page;
         currentLatestPage++;
-
-        listPages.add(page);
     }
 
     public int getFirstBitOfFrameOfPage(int pageId){
         int result = -1;
-
-        Iterator iterator = listPages.listIterator();
-        do{
-            Page page = (Page) iterator.next();
-
-            if(pageId == page.getIdPage()){
-                result = page.getFirstBitOfFrame();
+        
+        for(int i = 0; i < 32; i++){
+            if(i == pageId){
+                result = listPages[i].getFirstBitOfFrame();
+                break;
             }
-
-        }while(iterator.hasNext());
-
+        }
         return result;
     }
 
     public Page getLastPageOfStaticData(){
         Page result = new Page(-1,-1,-1,false,false,32);
-        Iterator iterator = listPages.listIterator();
-        do{
-            Page page = (Page) iterator.next();
-            if(page.getIsLastPageOfStaticData()){
-                result = page;
+        for(int i = 0; i < 32; i++){
+            if(listPages[i].getIsLastPageOfStaticData()){
+                result = listPages[i];
                 break;
             }
-        } while (iterator.hasNext());
+        }
         return result;
     }
 
     public Page getLastPageOfHeap(){
         Page result = new Page(-1,-1,-1,false,false,32);
-        Iterator iterator = listPages.listIterator();
-        do{
-            Page page = (Page) iterator.next();
-            if(page.getIsLastPageOfHeap()){
-                result = page;
+        for(int i = 0; i < 32; i++){
+            if(listPages[i].getIsLastPageOfHeap()){
+                result = listPages[i];
+                break;
             }
-        } while (iterator.hasNext());
+        }
         return result;
     }
 
+
     public void removePage(int idPage){
-        Iterator iterator = listPages.listIterator();
-        int i = 0;
-        do{
-            Page page = (Page) iterator.next();
-            if(page.getIdPage()==idPage){
-                listPages.remove(i);
-                break;
+
+        for(int i = 0; i < 32; i++){
+            if(i == idPage){
+                listPages[i].setValidationBit(0);
+                listPages[i].setFirstBitOfFrame(-1);
             }
-            i++;
-        }while(iterator.hasNext());
+        }
 
         currentLatestPage--;
     }
 
     public Page getPageById(int id){
-        Page result = new Page(-1,-1,-1,false,false,-1);
-        Iterator iterator = listPages.listIterator();
-        do{
-            Page page = (Page) iterator.next();
-            if(page.getIdPage()==id){
-                result = page;
-                break;
-            }
-        } while(iterator.hasNext());
-        return  result;
+        return  listPages[id];
     }
 
 }

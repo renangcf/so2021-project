@@ -25,8 +25,10 @@ public class Page {
     public boolean getIsLastPageOfStaticData(){return isLastPageOfStaticData;}
     public boolean getIsLastPageOfHeap(){return isLastPageOfHeapData;}
     public int getAllocatedSpaceOnFrame(){return allocatedSpaceOnFrame;}
+    public int getValidationBit(){return validationBit;}
 
     public void setAllocatedSpaceOnFrame(int allocatedSpaceOnFrame){this.allocatedSpaceOnFrame = allocatedSpaceOnFrame;}
     public void setValidationBit(int newValidationBit){this.validationBit = newValidationBit;}
     public void setIsLastPageOfHeapData(boolean newIsLastPageOfHeapData){this.isLastPageOfHeapData = newIsLastPageOfHeapData;}
+    public void setFirstBitOfFrame(int firstBitOfFrame){this.firstBitOfFrame = firstBitOfFrame;}
 }

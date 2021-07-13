@@ -84,7 +84,7 @@ public class Application {
 
                         System.out.println();
                         heapSize = mm.freeMemoryFromProcess(id, size);
-                        System.out.println("Tamanho atual do heap: " + heapSize);
+                        System.out.println("Tamanho do heap removido: " + heapSize);
                     } catch(Exception e){
                         System.out.println(e);
                         break;
